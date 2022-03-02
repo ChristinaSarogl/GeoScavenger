@@ -20,7 +20,7 @@
                             <p class="small mb-3 px-3 pb-lg-2 text-end"><a class="text-secondary" href="#!">Forgot password?</a></p>
 
                             <div class="mt-4 text-center">
-                                <button class="btn btn-green w-50">Login</button>
+                                <button class="btn btn-green w-50" onclick="login()">Login</button>
                             </div>
                             
                         </form>
