@@ -43,7 +43,7 @@
                 </table>
               </div>
 
-              <button id="deleteAll" class="btn btn-red">Delete all hunts</button>
+              <button id="deleteAll" class="btn btn-red" onclick="deleteAllHunts()">Delete all hunts</button>
               
             </div>
 

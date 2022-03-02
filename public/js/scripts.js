@@ -404,3 +404,75 @@ $(document).ready(function() {
         e.preventDefault();
     })
 });
+
+function deleteThisHunt(position){
+
+    var user = auth.currentUser;
+    db.collection("managers").doc(user.uid).get()
+    .then((doc)=>{
+        deleteHunt(user, doc.get('created_hunts')[position]);
+    });
+    document.getElementById("hunts-table").deleteRow(position+1);
+
+    var delStrings = document.getElementById('hunts-table').getElementsByClassName('clickable');
+	
+	if (delStrings.length === 0){
+		document.querySelector('#hunts-table').style.display = "none";
+		document.querySelector('#deleteAll').style.display = "none";
+		document.querySelector('#noHuntsMessage').style.display = "block";
+	} else {
+		for (let entry = 0; entry <= delStrings.length-1; entry++){
+			delStrings[entry].setAttribute('onclick', 'deleteThisHunt(' + entry + ')');
+		}
+	}	
+        
+}
+
+function deleteAllHunts(){
+    //document.getElementById('loader').style.display="block";
+    //document.getElementById('main').style.display="none";
+
+    var user = auth.currentUser;
+
+    //Get all user's hunt ids
+    db.collection("managers").doc(user.uid).get().then((doc)=>{    
+        doc.get('created_hunts').forEach((id) => {
+            deleteHunt(user, id);
+        });
+        
+        //document.getElementById('loader').style.display="none";
+        //document.getElementById('main').style.display="block";
+    });  
+    
+    document.querySelector('#hunts-table').style.display = "none";
+    document.querySelector('#deleteAll').style.display = "none";
+    document.querySelector('#noHuntsMessage').style.display = "block";
+}
+
+function deleteHunt(user, huntID){
+
+    db.collection("hunts").doc(huntID).get().then((hunt)=>{
+        //Get the hunt's checkpoints
+        hunt.get('checkpoints').forEach((checkpoint) =>{
+
+            //Delete hunt's checkpoints
+            db.collection('checkpoints').doc(checkpoint).delete().then(() => {
+                console.log("Checkpoint successfully deleted!");
+            }).catch((error) => {
+                console.error("Error removing document: ", error);
+            });     
+
+        });
+
+        db.collection("hunts").doc(huntID).delete().then(() => {
+            console.log("Hunt successfully deleted!");
+        }).catch((error) => {
+            console.error("Error removing document: ", error);
+        }); 
+
+        db.collection('managers').doc(user.uid).update({
+            created_hunts: firebase.firestore.FieldValue.arrayRemove(huntID)
+        });
+        console.log("Hunt removed from list!");
+    });   
+}
