@@ -47,7 +47,7 @@
 
                         <div>
                             <p class="mt-5 mb-2">Already have an account?
-                                <a href="#!" class="text-success">Login</a>
+                                <a href="<?php echo base_url(); ?>/login" class="text-success">Login</a>
                             </p>
                         </div>
                     </div>

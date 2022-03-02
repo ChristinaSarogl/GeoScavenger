@@ -27,7 +27,7 @@
 
                         <div>
                             <p class="mt-5 mb-2">Don't have an account?
-                                <a href="#!" class="text-success">Register</a>
+                                <a href="<?php echo base_url(); ?>/register" class="text-success">Register</a>
                             </p>
                         </div>
                     </div>
