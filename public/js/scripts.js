@@ -15,6 +15,9 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
+const questionsInfo = {};
+var submittedQuestions = 0;
+
 //Listen for auth changes
 auth.onAuthStateChanged(user => {
     if (user){
@@ -209,3 +212,65 @@ function saveCoordinates(){
         // markerExists = false;
     }    
 }
+
+function deleteCheckpoint(position){
+    //Remove element from checkpoint list
+    var checkEl = document.getElementById('check' + position);
+    checkEl.remove();
+
+    //Remove element from challenge list
+    var chalEl = document.getElementById('chal' + position);
+    chalEl.remove();
+
+    //Remove element from selection list
+    var selEl = document.getElementById('sel' + position);
+    selEl.remove();
+
+    const checkpointItems = document.getElementById('checkpoint-list').getElementsByTagName('li');
+    const challengeItems = document.getElementById('challenge-list').getElementsByTagName('li');
+ 
+    //Loop through the lists.
+    for (let item = 0; item <= checkpointItems.length - 1; item++) {
+        //Change challenge list
+        var challenge = challengeItems[item].getElementsByClassName('small-title');
+        for(let i = 0; i <= challenge.length-1; i++){
+            challenge[i].innerHTML = "Checkpoint " + (item + 1);
+            challenge[i].setAttribute('onclick', "resetForm(" + item + ")");
+        }
+        challengeItems[item].setAttribute('id','chal' + item);
+    
+
+        //Change checkpoint list
+        checkpointItems[item].setAttribute('id','check' + item);
+
+        var title = checkpointItems[item].getElementsByClassName('small-title');
+        for(let i = 0; i <= title.length-1; i++){
+            title[i].innerHTML = "Checkpoint " + (item +1 );
+        }
+
+        var image = checkpointItems[item].getElementsByClassName('small-image');
+        for(let i = 0; i <= image.length-1; i++){
+            image[i].setAttribute('id','delete' + item);
+            image[i].setAttribute('onclick','deleteCheckpoint("'+ item + '")');
+        }
+    }
+
+    const selectionItems = document.getElementById('challenge-checkpoint').getElementsByTagName('option');
+
+    //Change selection list
+    for(let sel = 0; sel <= selectionItems.length-1; sel++){
+        if (sel !== 0){
+            selectionItems[sel].setAttribute('id','sel'+ (sel-1));
+            selectionItems[sel].innerHTML = "Checkpoint " + sel;
+        }
+    }    
+
+    //Check if any questions are saved and delete them
+    if (questionsInfo.lenght !== 0){
+        var index = parseInt(position) + 1;
+        delete questionsInfo['Checkpoint '+ index]; 
+        submittedQuestions--;   
+    }
+
+}
+

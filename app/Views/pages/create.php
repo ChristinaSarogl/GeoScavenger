@@ -26,7 +26,7 @@
                 <form id="create-form"></form>
                 <form id="question-form"></form>
 
-                <p class="fs-5 mb-5 text-danger" id="error-message"></p>
+                <p class="mb-5 text-danger" id="error-message"></p>
 
                 <div class="input-group">
                     <div class="input-group-text">Hunt name</div>
