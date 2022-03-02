@@ -17,6 +17,9 @@ const db = firebase.firestore();
 
 const questionsInfo = {};
 var submittedQuestions = 0;
+var checkpointMarker;
+let markers = [];
+var markerExists = false;
 
 //Listen for auth changes
 auth.onAuthStateChanged(user => {
@@ -148,12 +151,13 @@ function loadHunts(user){
 
 function saveCoordinates(){
 	var storage = firebase.storage();
-    // var coordinates = checkpointMarker.getPosition();
-    // var lat = coordinates.lat();
-    // var long = coordinates.lng();
+    
+	var coordinates = checkpointMarker.getPosition();
+    var lat = coordinates.lat();
+    var lng = coordinates.lng();
 
-    var lat = Math.random() * 90;
-    var long = Math.random() * 180;
+    //var lat = Math.random() * 90;
+    //var long = Math.random() * 180;
 
     var lenght = document.getElementById("checkpoint-list").getElementsByTagName("li").length;
 
@@ -174,7 +178,7 @@ function saveCoordinates(){
 
         var coordinates = document.createElement('p');
         coordinates.setAttribute('class','mb-1');
-        coordinates.innerHTML = lat.toFixed(6) + ', ' + long.toFixed(6);
+        coordinates.innerHTML = lat.toFixed(6) + ', ' + lng.toFixed(6);
 
         var deleteIcon = document.createElement('img');
 		var pathReference = storage.ref('default_images/bin.png');
@@ -208,8 +212,9 @@ function saveCoordinates(){
         selection.setAttribute('id','sel' + lenght);
         $('#challenge-checkpoint').append(selection);
 
-        // checkpointMarker.setLabel((lenght+1).toString());
-        // markerExists = false;
+		markers.push(checkpointMarker);
+        checkpointMarker.setLabel((lenght+1).toString());
+        markerExists = false;
     }    
 }
 
@@ -225,7 +230,14 @@ function deleteCheckpoint(position){
     //Remove element from selection list
     var selEl = document.getElementById('sel' + position);
     selEl.remove();
-
+	
+	//Remove marker
+	var removedMarker = markers.splice(position,1);
+	removedMarker[0].setMap(null);
+	for (var marker = 0; marker < markers.length; marker++){
+		markers[marker].setLabel((marker+1).toString());
+	}
+	
     const checkpointItems = document.getElementById('checkpoint-list').getElementsByTagName('li');
     const challengeItems = document.getElementById('challenge-list').getElementsByTagName('li');
  
@@ -364,13 +376,13 @@ $(document).ready(function() {
                 var checkCoord = document.querySelector('#check' + (checkp-1)).getElementsByTagName('p')[1].textContent;
                 const coordinatesArray = checkCoord.split(", ");
                 var lat = parseFloat(coordinatesArray[0]);
-                var long = parseFloat(coordinatesArray[1]);
+                var lng = parseFloat(coordinatesArray[1]);
 
                 //Save checkpoint information
                 var checkpointRef = db.collection('checkpoints').doc();
                 
                 checkpointRef.set({
-                    location: new firebase.firestore.GeoPoint(lat,long),
+                    location: new firebase.firestore.GeoPoint(lat,lng),
                     question: question,
                     rightAnswerIndex: parseInt(rightAnswer),
                     0: answers[0],
@@ -475,4 +487,50 @@ function deleteHunt(user, huntID){
         });
         console.log("Hunt removed from list!");
     });   
+}
+
+// Initialize and add the map
+function initMap() {
+    map = new google.maps.Map(document.getElementById("map"), {
+        center: { lat: -34.397, lng: 150.644 },
+        zoom: 15,
+    });
+
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition((position) => {
+            const pos = {
+              lat: position.coords.latitude,
+              lng: position.coords.longitude,
+            };
+
+            map.setCenter(pos);
+
+            map.addListener("click", (mapsMouseEvent) => {
+                
+                if(markerExists){
+                    checkpointMarker.setPosition(mapsMouseEvent.latLng);
+                } else {
+                    checkpointMarker = new google.maps.Marker({
+                        position: mapsMouseEvent.latLng,
+                        map,
+                        draggable: true
+                    });
+                    markerExists = true;
+                }
+
+            });
+        },() => {
+            handleLocationError(true);
+        });
+    } else{
+        handleLocationError(false);
+    }
+}
+
+function handleLocationError(browserHasGeolocation) {
+    if (browserHasGeolocation){
+        console.log("Error: The Geolocation service failed.");
+    } else {
+        console.log("Error: Your browser doesn't support geolocation.");
+    }
 }

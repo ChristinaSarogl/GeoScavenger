@@ -43,7 +43,7 @@
                         </div> 
                         <ul class="list-group list-group-flush" id="checkpoint-list"></ul>                       
                     </div>
-                    <div class="col-md-7 order-1 order-sm-1 bg-success">
+                    <div class="col-md-7 order-1 order-sm-1 p-0">
                         <div id="map"></div>
                     </div>
                 </div>
