@@ -19,7 +19,7 @@
                                     </span>
                                 </span>
 
-                                <input type="text" class="form-control" id="register-date"
+                                <input type="text" class="form-control" id="register-date" onclick="pickDate()"
                                     placeholder="Date of Birth" required>
                             </div>
 
@@ -34,7 +34,7 @@
                             </div>
 
                             <div class="mb-2 px-3">
-                                <input type="password" class="form-control" id="register-repeat-password"
+                                <input type="password" class="form-control" id="register-repeat"
                                     placeholder="Repeat Password" required>
                             </div>
 

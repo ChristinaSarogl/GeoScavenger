@@ -55,6 +55,60 @@ function login(){
     })
 }
 
+function pickDate(){
+	
+}
+
+function signup(){
+    const signupForm = document.querySelector('#register-form');
+    signupForm.addEventListener('submit' , (e) => {
+        e.preventDefault();
+        var mUsername = signupForm['register-username'].value;
+		var mDate = signupForm['register-date'].value;
+        var mEmail = signupForm['register-email'].value;
+        var mPassword = signupForm['register-password'].value;
+        var mPasswordRepeat = signupForm['register-repeat'].value;
+
+        if (mPassword !== mPasswordRepeat){
+            document.getElementById('error-message').innerHTML="Passwords do not match.";
+        } else {
+            auth.createUserWithEmailAndPassword(mEmail,mPassword)
+            .then(cred => {
+                var user = cred.user;
+                //Change manager's display name
+                user.updateProfile({
+                    displayName: mUsername,
+                }).then(() =>{
+                    //Create firestore document
+                    db.collection("managers").doc(user.uid).set({
+                        username: mUsername,
+                        photoUrl: null,
+                        email: mEmail,
+                        created_hunts: [],
+                    }).then(() => {
+                        console.log("User document created!");
+                        window.location.href = "homePage.html";
+                    })               
+
+                })
+            }).catch((error) => {
+                var errorCode = error.code;
+                if (errorCode === 'auth/weak-password'){
+                    document.getElementById('error-message').innerHTML="Weak Password!<br>Your passoword has to have at least 6 characters";
+                } else if(errorCode === 'auth/email-already-in-use'){
+                    document.getElementById('error-message').innerHTML="An account with this email already exists!";
+                } else if(errorCode === 'auth/invalid-email'){
+                    document.getElementById('error-message').innerHTML="You have entered an invalid email!";
+                } else {
+                    document.getElementById('error-message').innerHTML="Something went wrong!<br>Please check your information!";
+                }
+            })
+        }
+        
+        
+    })
+}
+
 function logoutUser(){
     auth.signOut();
     window.location.href = "login";
