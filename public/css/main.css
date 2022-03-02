@@ -115,3 +115,9 @@ a{
     height: 20px;
     width: 20px;
 }
+
+/* Other */
+
+.clickable:hover{
+	cursor: pointer;
+}

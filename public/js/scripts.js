@@ -119,7 +119,7 @@ function loadHunts(user){
                     var string = document.createElement('p');
                     string.innerHTML = "Delete hunt";
                     del.append(string);
-                    del.setAttribute('class','clickable-p');
+                    del.setAttribute('class','clickable');
                     del.setAttribute('onclick','deleteThisHunt(' + i + ')');
 
                     row.append(name);
@@ -181,7 +181,7 @@ function saveCoordinates(){
             pathReference.getDownloadURL().then((url) => {
                 deleteIcon.setAttribute('src',url);
             });
-        deleteIcon.setAttribute('class', 'small-image');
+        deleteIcon.setAttribute('class', 'small-image clickable');
         deleteIcon.setAttribute('id','delete' + lenght);
         deleteIcon.setAttribute('onclick','deleteCheckpoint("'+ lenght + '")');
 
@@ -196,7 +196,7 @@ function saveCoordinates(){
         challenge.setAttribute('class','list-group-item');
         var title = document.createElement('p');
         title.innerHTML = "Checkpoint " + (lenght+1);
-        title.setAttribute('class','small-title clickable-p');
+        title.setAttribute('class','small-title clickable');
         title.setAttribute('onclick', "resetForm("+ lenght + ")");
         challenge.append(title);
         challenge.setAttribute('id','chal' + lenght);
@@ -333,3 +333,74 @@ function resetForm(index){
 
     document.querySelector('#challenge-checkpoint').options.item(position).selected = "selected";
 }
+
+$(document).ready(function() {
+    $(document).on('submit', '#create-form', function(e) {
+        const createForm = document.querySelector('#create-form');
+        const checkpointsIDs = [];
+
+        var name = createForm['hunt-name'].value;
+        var huntName = name;
+        
+        var checkpoints = document.getElementById('checkpoint-list').getElementsByTagName('li');
+		
+        if (checkpoints.length < 3){
+            document.getElementById('error-message').innerHTML="You have to add at least 3 checkpoints to the hunt!";
+        } else if(checkpoints.length !== submittedQuestions){
+            document.getElementById('error-message').innerHTML="You have to enter a question for each checkpoint!";
+        } else{
+            // document.getElementById('loader').style.display="block";
+            // document.getElementById('main').style.display="none";
+
+            for (let checkp = 1; checkp <= checkpoints.length; checkp ++){
+
+                //Save all the questions details
+                var questionDetails  = questionsInfo['Checkpoint '+ checkp];
+                var question = questionDetails['question'];
+                var rightAnswer = questionDetails['rightAnswerIndex'];
+                var answers = questionDetails['answers'];
+
+                //Get checkpoint's coordinates
+                var checkCoord = document.querySelector('#check' + (checkp-1)).getElementsByTagName('p')[1].textContent;
+                const coordinatesArray = checkCoord.split(", ");
+                var lat = parseFloat(coordinatesArray[0]);
+                var long = parseFloat(coordinatesArray[1]);
+
+                //Save checkpoint information
+                var checkpointRef = db.collection('checkpoints').doc();
+                
+                checkpointRef.set({
+                    location: new firebase.firestore.GeoPoint(lat,long),
+                    question: question,
+                    rightAnswerIndex: parseInt(rightAnswer),
+                    0: answers[0],
+                    1: answers[1],
+                    2: answers[2],
+                    3: answers[3]
+                })
+                
+                checkpointsIDs[checkp-1] = checkpointRef.id;
+            }  
+
+            var huntRef = db.collection('hunts').doc();
+
+            huntRef.set({
+                name: huntName,
+                players: 0,
+                date: new Date(),
+                checkpoints: checkpointsIDs               
+            });
+
+            var huntID = huntRef.id;
+            var user = auth.currentUser;
+
+            //Add hunt to user's collection
+            db.collection('managers').doc(user.uid).update({
+                created_hunts: firebase.firestore.FieldValue.arrayUnion(huntID)
+            }).then(() =>{
+                window.location.href = "home"; 
+            })
+        }
+        e.preventDefault();
+    })
+});
