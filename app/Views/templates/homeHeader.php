@@ -51,7 +51,7 @@
               </li>
             </ul>
             <hr>
-            <a class="nav-link link-danger" href="">
+            <a class="nav-link link-danger" href="#" onclick="logoutUser()">
               <i class="fs-4 bi-box-arrow-right"></i> <span>Logout</span>
             </a>
           </div>

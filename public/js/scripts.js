@@ -37,7 +37,7 @@ function login(){
             db.collection("managers").doc(user.uid).get()
             .then((doc)=>{
                 if (doc.exists){
-                    window.location.href = ""; 
+                    window.location.href = "home"; 
                 } else {
                     auth.signOut();       
                     document.getElementById('error-message').innerHTML="You need a manager account to enter this service!";             
@@ -47,4 +47,9 @@ function login(){
             document.getElementById('error-message').innerHTML="Incorrect email or password!";
         })
     })
+}
+
+function logoutUser(){
+    auth.signOut();
+    window.location.href = "login";
 }
