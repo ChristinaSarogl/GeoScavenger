@@ -38,38 +38,10 @@
                     <div class="col-md-5 order-2 order-sm-2 px-2">
                         <div class="d-flex align-items-center justify-content-between">
                             <p class="fw-bold small-title">CHECKPOINTS</p>
-                            <img class="small-image" id="add-checkpoint" src="plus.png" alt="Add checkpoint"/>
+                            <img class="small-image" id="add-checkpoint" src=""
+								alt="Add checkpoint" onclick="saveCoordinates()"/>
                         </div> 
-                        <ul class="list-group list-group-flush" id="checkpoint-list">
-                            <li class="list-group-item d-flex align-items-center justify-content-between p-2">
-                                <div>
-                                    <p class="small-title">Checkpoint</p>
-                                    <p class="mb-1">coordinates</p>
-                                </div>                                
-                                <img class="small-image" src="bin.png" />
-                            </li>
-                            <li class="list-group-item d-flex align-items-center justify-content-between p-2">
-                                <div>
-                                    <p class="small-title">Checkpoint</p>
-                                    <p class="mb-1">coordinates</p>
-                                </div>                                
-                                <img class="small-image" src="bin.png" />
-                            </li>
-                            <li class="list-group-item d-flex align-items-center justify-content-between p-2">
-                                <div>
-                                    <p class="small-title">Checkpoint</p>
-                                    <p class="mb-1">coordinates</p>
-                                </div>                                
-                                <img class="small-image" src="bin.png" />
-                            </li>
-                            <li class="list-group-item d-flex align-items-center justify-content-between p-2">
-                                <div>
-                                    <p class="small-title">Checkpoint</p>
-                                    <p class="mb-1">coordinates</p>
-                                </div>                                
-                                <img class="small-image" src="bin.png" />
-                            </li>
-                        </ul>                       
+                        <ul class="list-group list-group-flush" id="checkpoint-list"></ul>                       
                     </div>
                     <div class="col-md-7 order-1 order-sm-1 bg-success">
                         <div id="map"></div>
@@ -82,16 +54,7 @@
                     <div class="col-md-5 col-lg-4 order-1 order-sm-1 text-start">
                         <p class="fw-bold small-title">CHALLENGES</p>
 
-                        <ul class="list-group list-group-flush" id="challenge-list">
-                            <li class="list-group-item">An item</li>
-                            <li class="list-group-item">A second item</li>
-                            <li class="list-group-item">A third item</li>
-                            <li class="list-group-item">A fourth item</li>
-                            <li class="list-group-item">And a fifth one</li>
-                            <li class="list-group-item">A third item</li>
-                            <li class="list-group-item">A fourth item</li>
-                            <li class="list-group-item">And a fifth one</li>
-                        </ul>
+                        <ul class="list-group list-group-flush" id="challenge-list"></ul>
                     </div>
 
                     <div class="col-md-7 col-lg-8 order-2 order-sm-2 mt-3 text-center">
@@ -99,9 +62,6 @@
                             <label class="input-group-text" for="challenge-checkpoint">Checkpoint</label>
                             <select class="form-select" id="challenge-checkpoint" form="question-form" required>
                               <option value="">Choose checkpoint</option>
-                              <option value="1">One</option>
-                              <option value="2">Two</option>
-                              <option value="3">Three</option>
                             </select>
                         </div>
 
