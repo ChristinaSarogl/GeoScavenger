@@ -6,6 +6,7 @@ class Login extends BaseController
 {
     public function index()
     {
-        return view('welcome_message');
+        echo view('templates/entryHeader');
+		echo view('templates/entryFooter');
     }
 }
