@@ -274,3 +274,62 @@ function deleteCheckpoint(position){
 
 }
 
+$(document).ready(function() {
+    $(document).on('submit', '#question-form', function(e) {
+        const questionForm = document.querySelector('#question-form');
+        const answers = [];
+        
+        const checkpointQuestionInfo = {};
+        var checkpoint = questionForm['challenge-checkpoint'].value;
+        var index = questionForm['challenge-checkpoint'].selectedIndex;
+        
+        var question = questionForm['challenge-question'].value;
+        checkpointQuestionInfo.question = question;
+
+        for(let answerNo = 0; answerNo < 4; answerNo++){
+            var answer = questionForm['answer' + (answerNo + 1)].value;
+            answers[answerNo] = answer;
+        }
+        checkpointQuestionInfo.answers = answers;
+
+        var rightAnswerIndex = questionForm['answer'].value;
+        checkpointQuestionInfo.rightAnswerIndex = rightAnswerIndex;
+        questionsInfo[checkpoint] = checkpointQuestionInfo;
+
+        document.getElementById('chal' + (index-1)).style.backgroundColor = "#5BA6A2";
+        document.getElementById('chal' + (index-1)).style.color = "white";
+        var string = document.getElementById('chal' + (index-1)).value;
+        var p = document.getElementById('chal' + (index-1)).getElementsByTagName('p');
+        for (let i = 0; i <= p.length-1; i++){
+            p[i].style.color = 'white';
+        }
+        submittedQuestions++;
+        questionForm.reset();
+
+        e.preventDefault();
+    });
+});
+
+function resetForm(index){
+    var position = index + 1;
+    const questionForm = document.querySelector('#question-form');
+    
+    if (questionsInfo.lenght !== 0){
+        var qDetails = questionsInfo['Checkpoint ' + (position)];
+        //If the question is already saved, load
+        if (typeof qDetails !== 'undefined'){
+            document.querySelector('#challenge-question').value = qDetails.question;
+            document.querySelector('#answer1').value = qDetails.answers[0];
+            document.querySelector('#answer2').value = qDetails.answers[1];
+            document.querySelector('#answer3').value = qDetails.answers[2];
+            document.querySelector('#answer4').value = qDetails.answers[3];
+            document.querySelector('#radio' + qDetails.rightAnswerIndex).checked = true;
+        } else {
+            questionForm.reset();
+        }
+    } else {
+        questionForm.reset();
+    }
+
+    document.querySelector('#challenge-checkpoint').options.item(position).selected = "selected";
+}
