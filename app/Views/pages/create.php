@@ -1,0 +1,171 @@
+			  <li class="nav-item">
+                <a class="nav-link link-dark" href="home">
+                  <i class="fs-4 bi-speedometer2"></i> <span>Dashboard</span>
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link active" href="create">
+                  <i class="fs-4 bi-pin-map"></i> <span>Create hunt</span>
+                </a>
+              </li>
+            </ul>
+            <hr>
+            <a class="nav-link link-danger" href="#" onclick="logoutUser()">
+              <i class="fs-4 bi-box-arrow-right"></i> <span>Logout</span>
+            </a>
+          </div>
+        </nav>
+		
+		<main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+          <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+            <h1 class="h2">Create Hunt</h1>
+          </div>
+          
+          <div class="card">
+            <div class="card-body text-center py-3">              
+                <form id="create-form"></form>
+                <form id="question-form"></form>
+
+                <p class="fs-5 mb-5 text-danger" id="error-message"></p>
+
+                <div class="input-group">
+                    <div class="input-group-text">Hunt name</div>
+                    <input type="text" class="form-control" id="hunt-name" placeholder="Hunt Name" form="create-form" required>
+                </div>
+                <hr>
+
+                <div class="row px-3 text-start">
+                    <div class="col-md-5 order-2 order-sm-2 px-2">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <p class="fw-bold small-title">CHECKPOINTS</p>
+                            <img class="small-image" id="add-checkpoint" src="plus.png" alt="Add checkpoint"/>
+                        </div> 
+                        <ul class="list-group list-group-flush" id="checkpoint-list">
+                            <li class="list-group-item d-flex align-items-center justify-content-between p-2">
+                                <div>
+                                    <p class="small-title">Checkpoint</p>
+                                    <p class="mb-1">coordinates</p>
+                                </div>                                
+                                <img class="small-image" src="bin.png" />
+                            </li>
+                            <li class="list-group-item d-flex align-items-center justify-content-between p-2">
+                                <div>
+                                    <p class="small-title">Checkpoint</p>
+                                    <p class="mb-1">coordinates</p>
+                                </div>                                
+                                <img class="small-image" src="bin.png" />
+                            </li>
+                            <li class="list-group-item d-flex align-items-center justify-content-between p-2">
+                                <div>
+                                    <p class="small-title">Checkpoint</p>
+                                    <p class="mb-1">coordinates</p>
+                                </div>                                
+                                <img class="small-image" src="bin.png" />
+                            </li>
+                            <li class="list-group-item d-flex align-items-center justify-content-between p-2">
+                                <div>
+                                    <p class="small-title">Checkpoint</p>
+                                    <p class="mb-1">coordinates</p>
+                                </div>                                
+                                <img class="small-image" src="bin.png" />
+                            </li>
+                        </ul>                       
+                    </div>
+                    <div class="col-md-7 order-1 order-sm-1 bg-success">
+                        <div id="map"></div>
+                    </div>
+                </div>
+
+                <hr>
+
+                <div class="row px-3">
+                    <div class="col-md-5 col-lg-4 order-1 order-sm-1 text-start">
+                        <p class="fw-bold small-title">CHALLENGES</p>
+
+                        <ul class="list-group list-group-flush" id="challenge-list">
+                            <li class="list-group-item">An item</li>
+                            <li class="list-group-item">A second item</li>
+                            <li class="list-group-item">A third item</li>
+                            <li class="list-group-item">A fourth item</li>
+                            <li class="list-group-item">And a fifth one</li>
+                            <li class="list-group-item">A third item</li>
+                            <li class="list-group-item">A fourth item</li>
+                            <li class="list-group-item">And a fifth one</li>
+                        </ul>
+                    </div>
+
+                    <div class="col-md-7 col-lg-8 order-2 order-sm-2 mt-3 text-center">
+                        <div class="input-group input-group-sm mb-3">
+                            <label class="input-group-text" for="challenge-checkpoint">Checkpoint</label>
+                            <select class="form-select" id="challenge-checkpoint" form="question-form" required>
+                              <option value="">Choose checkpoint</option>
+                              <option value="1">One</option>
+                              <option value="2">Two</option>
+                              <option value="3">Three</option>
+                            </select>
+                        </div>
+
+                        <div class="input-group input-group-sm mb-3">
+                            <span class="input-group-text">Question</span>
+                            <input type="text" class="form-control" id="challenge-question" placeholder="Question" form="question-form" required>
+                        </div>
+                        
+                        <div class="text-start">
+                            <p>Answers 
+                                <span class="text-secondary">[Choose the right one]</span>
+                            </p>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <div class="input-group input-group-sm mb-2">
+                                    <div class="input-group-text">
+                                      <input class="form-check-input mt-0" type="radio" name="answer" id="radio0" value="0" form="question-form" required>
+                                    </div>
+                                    <input type="text" class="form-control" id="answer1" placeholder="Answer 1" form="question-form" name="0" required>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="input-group input-group-sm mb-2">
+                                    <div class="input-group-text">
+                                      <input class="form-check-input mt-0" type="radio" name="answer" id="radio1" value="1" form="question-form">
+                                    </div>
+                                    <input type="text" class="form-control" id="answer2" placeholder="Answer 2" form="question-form" name="1" required>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="input-group input-group-sm mb-2">
+                                    <div class="input-group-text">
+                                      <input class="form-check-input mt-0" type="radio" name="answer" id="radio2" value="2" form="question-form">
+                                    </div>
+                                    <input type="text" class="form-control" id="answer3" placeholder="Answer 3" form="question-form" name="2" required>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="input-group input-group-sm mb-2">
+                                    <div class="input-group-text">
+                                      <input class="form-check-input mt-0" type="radio" name="answer" id="radio3" value="3" form="question-form">
+                                    </div>
+                                    <input type="text" class="form-control" id="answer4" placeholder="Answer 4" form="question-form" name="3" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button id="questionBtn" form="question-form" class="mt-2 p-0 border-0">
+                            <input class="btn btn-green m-0" type="submit" value="Save question" form="question-form"/>
+                        </button>
+                          
+                    </div>
+                </div>
+
+                <hr>
+
+                <button id="createHuntBtn" form="create-form" class="mt-2 p-0 border-0">
+                    <input class="btn btn-green m-0" type="submit" value="Create Hunt" form="create-form"/>
+                </button>               
+              
+            </div>
+
+          </div>
+
+        </main>

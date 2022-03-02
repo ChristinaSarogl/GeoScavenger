@@ -15,6 +15,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+	<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
 
     <title>GeoHunt</title>
   </head>
@@ -34,25 +35,8 @@
             <ul class="nav flex-column">
               <li>
                 <a class="d-flex align-items-center disabled ps-2 mt-3 mb-5">
-                  <img class="rounded-circle" id="profile-image" src="avatar_icon.png"
+                  <img class="rounded-circle" id="profile-image" src=""
                       width="50" height="50" alt="Profile picture">
                   <span class="fs-5 ms-2 text-dark" id="username">Username</span>
               </a>
               </li>
-              <li class="nav-item">
-                <a class="nav-link active" href="">
-                  <i class="fs-4 bi-speedometer2"></i> <span>Dashboard</span>
-                </a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link link-dark" href="">
-                  <i class="fs-4 bi-pin-map"></i> <span>Create hunt</span>
-                </a>
-              </li>
-            </ul>
-            <hr>
-            <a class="nav-link link-danger" href="#" onclick="logoutUser()">
-              <i class="fs-4 bi-box-arrow-right"></i> <span>Logout</span>
-            </a>
-          </div>
-        </nav>

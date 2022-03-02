@@ -10,4 +10,10 @@ class Home extends BaseController
 		echo view('pages/home');
 		echo view('templates/homeFooter');
     }
+	
+	public function create(){
+		echo view('templates/homeHeader');
+		echo view('pages/create');
+		echo view('templates/homeFooter');
+	}
 }
