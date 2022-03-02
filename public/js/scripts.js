@@ -18,7 +18,7 @@ const db = firebase.firestore();
 //Listen for auth changes
 auth.onAuthStateChanged(user => {
     if (user){
-        loadPicture(user);        
+        loadInfo(user);        
     } else {
         console.log("User logged out");
     }
@@ -52,4 +52,89 @@ function login(){
 function logoutUser(){
     auth.signOut();
     window.location.href = "login";
+}
+
+function loadInfo(user){
+    var storage = firebase.storage();
+
+    db.collection("managers").doc(user.uid).get().then((doc) => {
+        if (doc.get('photoUrl') !== null){
+            var imageUrl = doc.get('photoUrl');
+            storage.refFromURL(imageUrl).getDownloadURL()
+            .then((url)=>{
+                document.getElementById('profile-image').setAttribute('src', url);
+            });
+        } else {
+            var pathReference = storage.ref('default_images/avatar_icon.png');
+            pathReference.getDownloadURL().then((url) => {
+                document.getElementById('profile-image').setAttribute('src', url);
+            });
+        }
+
+        //Get file name
+        var path = window.location.pathname;
+        var page = path.split("/").pop();
+
+        if(page === "home"){
+            loadHunts(user);
+        } else {
+            document.getElementById('username').innerHTML = user.displayName;
+            // document.getElementById('loader').style.display="none";
+            // document.getElementById('main').style.display="block";
+            initMap();
+        }
+        
+    });
+}
+
+function loadHunts(user){
+    db.collection("managers").doc(user.uid).get().then((doc)=>{
+        if (doc.get('created_hunts').length !== 0){
+            document.querySelector('#noHuntsMessage').style.display = "none";
+            var i = 0;
+            //Display all hunts that the user has created
+            doc.get('created_hunts').forEach((doc) => {
+                db.collection("hunts").doc(doc).get()
+                .then((huntInfo) =>{
+                    var row = document.createElement('tr');
+
+                    var name = document.createElement('td');
+                    name.innerHTML = huntInfo.get('name');
+
+                    var date = document.createElement('td');
+                    date.innerHTML = huntInfo.get('date').toDate().toLocaleString('en-US',{
+                        day: 'numeric', year: 'numeric', month: 'long'});
+
+                    var players = document.createElement('td');
+                    players.innerHTML = huntInfo.get('players');
+
+                    var del = document.createElement('td');
+                    var string = document.createElement('p');
+                    string.innerHTML = "Delete hunt";
+                    del.append(string);
+                    del.setAttribute('class','clickable-p');
+                    del.setAttribute('onclick','deleteThisHunt(' + i + ')');
+
+                    row.append(name);
+                    row.append(date);
+                    row.append(players);
+                    row.append(del);
+
+                    $('#hunts-table').append(row);
+                    i++;
+                });                
+           });
+
+        } else {
+            document.querySelector('#hunts-table').style.display = "none";
+            document.querySelector('#deleteAll').style.display = "none";
+            document.querySelector('#noHuntsMessage').style.display = "block";
+        }
+
+        document.getElementById('username').innerHTML = user.displayName;
+        // document.getElementById('loader').style.display="none";
+        // document.getElementById('main').style.display="block";
+
+    });
+
 }
