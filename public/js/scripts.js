@@ -55,22 +55,33 @@ function login(){
     })
 }
 
-function pickDate(){
-	
-}
 
 function signup(){
     const signupForm = document.querySelector('#register-form');
     signupForm.addEventListener('submit' , (e) => {
         e.preventDefault();
         var mUsername = signupForm['register-username'].value;
-		var mDate = signupForm['register-date'].value;
+		var day = signupForm['dateDay'].value;
+        var month = signupForm['dateMonth'].value;
+        var year = signupForm['dateYear'].value;
         var mEmail = signupForm['register-email'].value;
         var mPassword = signupForm['register-password'].value;
         var mPasswordRepeat = signupForm['register-repeat'].value;
+		
+		//Calculate age
+		var birthday = year + "-" + month + "-" + day;
+        var date = new Date(birthday);
+
+        var age = new Date().getFullYear() - date.getFullYear();
+        var month= new Date().getMonth() - date.getMonth();
+        if (month < 0 || (month === 0 && new Date().getDate() < date.getDate())){
+            age--;
+        }
 
         if (mPassword !== mPasswordRepeat){
             document.getElementById('error-message').innerHTML="Passwords do not match.";
+		} else if(age < 18){
+			document.getElementById('error-message').innerHTML="You have to be at least 18 to use the service.";
         } else {
             auth.createUserWithEmailAndPassword(mEmail,mPassword)
             .then(cred => {
@@ -87,7 +98,7 @@ function signup(){
                         created_hunts: [],
                     }).then(() => {
                         console.log("User document created!");
-                        window.location.href = "homePage.html";
+                        window.location.href = "home";
                     })               
 
                 })
