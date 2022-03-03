@@ -26,6 +26,11 @@ auth.onAuthStateChanged(user => {
     if (user){
         loadInfo(user);        
     } else {
+		var path = window.location.pathname;
+        var page = path.split("/").pop();
+		if(page !== "login"){
+			window.location.href = "login";
+		}			
         console.log("User logged out");
     }
 })
@@ -54,7 +59,6 @@ function login(){
         })
     })
 }
-
 
 function signup(){
     const signupForm = document.querySelector('#register-form');
