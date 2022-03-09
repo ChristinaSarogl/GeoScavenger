@@ -20,6 +20,7 @@ var submittedQuestions = 0;
 var checkpointMarker;
 let markers = [];
 var markerExists = false;
+var mapView;
 
 //Listen for auth changes
 auth.onAuthStateChanged(user => {
@@ -162,8 +163,7 @@ function loadInfo(user){
             // document.getElementById('main').style.display="block";
             initMapCreate();
         } else {
-			document.getElementById('username').innerHTML = user.displayName;
-			//initMapView();	
+			document.getElementById('username').innerHTML = user.displayName;	
 			findActiveUsers();
 		}
         
@@ -610,7 +610,7 @@ function initMapCreate() {
 }
 
 function initMapView() {
-    map = new google.maps.Map(document.getElementById("map"), {
+    mapView = new google.maps.Map(document.getElementById("map"), {
         center: { lat: -34.397, lng: 150.644 },
         zoom: 15,
     });
@@ -622,7 +622,7 @@ function initMapView() {
               lng: position.coords.longitude,
             };
 
-            map.setCenter(pos);
+            mapView.setCenter(pos);
 
         },() => {
             handleLocationError(true);
@@ -642,22 +642,61 @@ function handleLocationError(browserHasGeolocation) {
 
 function findActiveUsers(){
 	var huntID = document.querySelector('#hunt-name').innerHTML;
-	console.log(huntID);
 	
 	db.collection("hunts").doc(huntID).get().then((huntInfo) =>{
 		document.getElementById('hunt-name').innerHTML= huntInfo.get('name');
 	});
+	document.getElementById('no-players-message').style.display = "block";
+	document.getElementById('map').style.display = "none";
+	initMapView();
+	
+	var huntRef = firebase.database().ref(huntID);
+	huntRef.on('value',(snapshot) => {
+		console.log("huntRef() snapshot: " + snapshot.val());
+		console.log(snapshot.val());
+		
+		if (snapshot.val() !== null){
+			document.getElementById('no-players-message').style.display = "none";
+			document.getElementById('map').style.display = "block";
+		}
+	});
+	
+	huntRef.on('child_added', (data) => {
+		console.log("huntRef() added child: " + data.key);
+		var coordinates = Object.values(data.val())[0];
+		console.log(coordinates);
+		addActiveUser(coordinates.latitude, coordinates.longitude);
+	});
+	
+	huntRef.on('child_changed', (data) => {
+		console.log("huntRef() child changed: " + data.key);
+		console.log(data.val());
+	});
 	
 	var databaseRef = firebase.database().ref();
-	databaseRef.child(huntID).get().then((snapshot) => {
-		if (snapshot.exists()){
-			console.log("Found hunt");
-			document.getElementById('no-players-message').style.display = "none";
-		} else {
-			console.log("Not Found hunt");
+	databaseRef.on('child_removed', (data) => {
+		if (data.key === huntID){			
+			console.log("huntRef() child removed: " + data.key);
+			document.getElementById('no-players-message').style.display = "block";
 			document.getElementById('map').style.display = "none";
 		}
-	}).catch((error) => {
-		console.error(error);
-	});
+	});	
 }
+
+function addActiveUser(latitude, longitude){
+	console.log("add user: {lat: " + latitude + ",long: " + longitude);
+	
+	const pos = { lat: latitude, lng: longitude }
+	
+	checkpointMarker = new google.maps.Marker({
+		position: pos,
+		mapView,
+		draggable: false
+	});
+	
+	//mapView.setCenter(pos);
+	
+}
+
+
+	
