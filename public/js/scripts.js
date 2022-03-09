@@ -379,14 +379,8 @@ $(document).ready(function() {
 		if (!questionsInfo.hasOwnProperty(checkpoint)){
             questionsInfo[checkpoint] = checkpointQuestionInfo;
             submittedQuestions++;
-            console.log(questionsInfo);
-            console.log(questionsInfo[checkpoint]);
-            console.log(submittedQuestions);
         } else {
             questionsInfo[checkpoint] = checkpointQuestionInfo;
-            console.log(questionsInfo);
-            console.log(questionsInfo[checkpoint]);
-            console.log(submittedQuestions);
         }
 
         document.getElementById('chal' + (index-1)).style.backgroundColor = "#5BA6A2";
