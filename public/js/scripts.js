@@ -152,7 +152,7 @@ function loadInfo(user){
 
         if(page === "home"){
             loadHunts(user);
-        } else {
+        } else if (page === "create"){
             document.getElementById('username').innerHTML = user.displayName;
 			var pathReference = storage.ref('default_images/plus.png');
             pathReference.getDownloadURL().then((url) => {
@@ -160,8 +160,12 @@ function loadInfo(user){
             });
             // document.getElementById('loader').style.display="none";
             // document.getElementById('main').style.display="block";
-            initMap();
-        }
+            initMapCreate();
+        } else {
+			document.getElementById('username').innerHTML = user.displayName;
+			//initMapView();	
+			findActiveUsers();
+		}
         
     });
 }
@@ -568,7 +572,7 @@ function deleteHunt(user, huntID){
 }
 
 // Initialize and add the map
-function initMap() {
+function initMapCreate() {
     map = new google.maps.Map(document.getElementById("map"), {
         center: { lat: -34.397, lng: 150.644 },
         zoom: 15,
@@ -605,10 +609,55 @@ function initMap() {
     }
 }
 
+function initMapView() {
+    map = new google.maps.Map(document.getElementById("map"), {
+        center: { lat: -34.397, lng: 150.644 },
+        zoom: 15,
+    });
+
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition((position) => {
+            const pos = {
+              lat: position.coords.latitude,
+              lng: position.coords.longitude,
+            };
+
+            map.setCenter(pos);
+
+        },() => {
+            handleLocationError(true);
+        });
+    } else{
+        handleLocationError(false);
+    }
+}
+
 function handleLocationError(browserHasGeolocation) {
     if (browserHasGeolocation){
         console.log("Error: The Geolocation service failed.");
     } else {
         console.log("Error: Your browser doesn't support geolocation.");
     }
+}
+
+function findActiveUsers(){
+	var huntID = document.querySelector('#hunt-name').innerHTML;
+	console.log(huntID);
+	
+	db.collection("hunts").doc(huntID).get().then((huntInfo) =>{
+		document.getElementById('hunt-name').innerHTML= huntInfo.get('name');
+	});
+	
+	var databaseRef = firebase.database().ref();
+	databaseRef.child(huntID).get().then((snapshot) => {
+		if (snapshot.exists()){
+			console.log("Found hunt");
+			document.getElementById('no-players-message').style.display = "none";
+		} else {
+			console.log("Not Found hunt");
+			document.getElementById('map').style.display = "none";
+		}
+	}).catch((error) => {
+		console.error(error);
+	});
 }
