@@ -375,7 +375,19 @@ $(document).ready(function() {
 
         var rightAnswerIndex = questionForm['answer'].value;
         checkpointQuestionInfo.rightAnswerIndex = rightAnswerIndex;
-        questionsInfo[checkpoint] = checkpointQuestionInfo;
+        
+		if (!questionsInfo.hasOwnProperty(checkpoint)){
+            questionsInfo[checkpoint] = checkpointQuestionInfo;
+            submittedQuestions++;
+            console.log(questionsInfo);
+            console.log(questionsInfo[checkpoint]);
+            console.log(submittedQuestions);
+        } else {
+            questionsInfo[checkpoint] = checkpointQuestionInfo;
+            console.log(questionsInfo);
+            console.log(questionsInfo[checkpoint]);
+            console.log(submittedQuestions);
+        }
 
         document.getElementById('chal' + (index-1)).style.backgroundColor = "#5BA6A2";
         document.getElementById('chal' + (index-1)).style.color = "white";
@@ -384,7 +396,7 @@ $(document).ready(function() {
         for (let i = 0; i <= p.length-1; i++){
             p[i].style.color = 'white';
         }
-        submittedQuestions++;
+		
         questionForm.reset();
 
         e.preventDefault();
@@ -463,10 +475,6 @@ $(document).ready(function() {
                 checkpointsIDs[checkp-1] = checkpointRef.id;
             }  
 			
-			var activeUsersRef = db.collection('active_users').doc();
-            activeUsersRef.set({
-                hunt_name: huntName
-            })
 
             var huntRef = db.collection('hunts').doc();
 
@@ -474,8 +482,7 @@ $(document).ready(function() {
                 name: huntName,
                 players: 0,
                 date: new Date(),
-                checkpoints: checkpointsIDs,
-				active_users: activeUsersRef.id
+                checkpoints: checkpointsIDs
             });
 
             var huntID = huntRef.id;
@@ -548,14 +555,6 @@ function deleteHunt(user, huntID){
             }).catch((error) => {
                 console.error("Error removing document: ", error);
             });   
-
-			var activeUsersID = hunt.get('active_users');
-		
-			db.collection('active_users').doc(activeUsersID).delete().then(() => {
-				console.log("Active users document deleted!");
-			}).catch((error) => {
-				console.error("Error deleting document: ", error);
-			});
 
         });
 		
