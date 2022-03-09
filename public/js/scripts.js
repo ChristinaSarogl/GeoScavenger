@@ -176,6 +176,7 @@ function loadHunts(user){
                 db.collection("hunts").doc(doc).get()
                 .then((huntInfo) =>{
                     var row = document.createElement('tr');
+					row.setAttribute('onclick',"window.location='active/" + huntInfo.id + "'");
 
                     var name = document.createElement('td');
                     name.innerHTML = huntInfo.get('name');

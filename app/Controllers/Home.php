@@ -17,9 +17,11 @@ class Home extends BaseController
 		echo view('templates/homeFooter');
 	}
 	
-	public function active(){
+	public function active($huntID){
+		$data['huntId'] = $huntID;
+		
 		echo view('templates/homeHeader');
-		echo view('pages/activePlayers');
+		echo view('pages/activePlayers', $data);
 		echo view('templates/homeFooter');
 	}
 }
