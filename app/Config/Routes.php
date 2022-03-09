@@ -35,6 +35,7 @@ $routes->get('/login', 'Login::login');
 $routes->get('/register', 'Login::register');
 $routes->get('/home', 'Home::home');
 $routes->get('/create', 'Home::create');
+$routes->get('/active', 'Home::active');
 
 
 /*
