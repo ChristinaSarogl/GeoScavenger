@@ -462,6 +462,11 @@ $(document).ready(function() {
                 
                 checkpointsIDs[checkp-1] = checkpointRef.id;
             }  
+			
+			var activeUsersRef = db.collection('active_users').doc();
+            activeUsersRef.set({
+                hunt_name: huntName
+            })
 
             var huntRef = db.collection('hunts').doc();
 
@@ -469,7 +474,8 @@ $(document).ready(function() {
                 name: huntName,
                 players: 0,
                 date: new Date(),
-                checkpoints: checkpointsIDs               
+                checkpoints: checkpointsIDs,
+				active_users: activeUsersRef.id
             });
 
             var huntID = huntRef.id;
