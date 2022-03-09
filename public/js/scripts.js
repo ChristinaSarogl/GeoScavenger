@@ -547,9 +547,18 @@ function deleteHunt(user, huntID){
                 console.log("Checkpoint successfully deleted!");
             }).catch((error) => {
                 console.error("Error removing document: ", error);
-            });     
+            });   
+
+			var activeUsersID = hunt.get('active_users');
+		
+			db.collection('active_users').doc(activeUsersID).delete().then(() => {
+				console.log("Active users document deleted!");
+			}).catch((error) => {
+				console.error("Error deleting document: ", error);
+			});
 
         });
+		
 
         db.collection("hunts").doc(huntID).delete().then(() => {
             console.log("Hunt successfully deleted!");
