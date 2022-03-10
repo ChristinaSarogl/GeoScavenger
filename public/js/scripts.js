@@ -662,15 +662,30 @@ function findActiveUsers(){
 	
 	huntRef.on('child_added', (data) => {
 		console.log("huntRef() added child: " + data.key);
-		console.log(data.val());
-		var coordinates = Object.values(data.val())[0];		
+		var coordinates = Object.values(data.val())[0];
 		addActiveUser(data.key, coordinates.latitude, coordinates.longitude);
+		var name = Object.values(data.val())[1];
+		console.log(name);
+		if (name !== undefined){
+			updateUserLocation(data.key, name, coordinates.latitude, coordinates.longitude);
+		}
 	});
 	
 	huntRef.on('child_changed', (data) => {
-		var coordinates = Object.values(data.val())[0];
-		var name = Object.values(data.val())[1];
-		updateUserLocation(data.key, name, coordinates.latitude, coordinates.longitude);
+		console.log("huntRef() changed: " + data.key);
+		console.log(data.val());
+		
+		if(data.val()["HELP"] !== undefined){
+			console.log(data.val()["HELP"]);
+			var coordinates = Object.values(data.val())[1];
+			var name = Object.values(data.val())[2];
+			displayUserDanger(name, coordinates.latitude, coordinates.longitude);
+		} else {
+			var coordinates = Object.values(data.val())[0];
+			var name = Object.values(data.val())[1];
+			updateUserLocation(data.key, name, coordinates.latitude, coordinates.longitude);
+		}
+		
 	});
 	 
 	huntRef.on('child_removed',(data) => {
@@ -704,16 +719,11 @@ function addActiveUser(userID, latitude, longitude){
 	mapView.setCenter(pos);
 	
 	usersLocs[userID] = userLocation;
-	console.log("usersLocs: " + usersLocs);
-	console.log(usersLocs);
 	
 }
 
 function updateUserLocation(userID, name, latitude, longitude){
-	console.log(usersLocs);
 	marker = usersLocs[userID];
-	console.log("Edit");
-	console.log(marker);
 	
 	if(marker.getTitle() === null){
 		marker.title = name;
@@ -728,13 +738,36 @@ function addInfoWindow(userID, message){
 		content: message
 	});
 	
+	usersLocs[userID]['infoWindow'].open(mapView,usersLocs[userID]);
+	
 	google.maps.event.addListener(usersLocs[userID], 'click', function(){
 		this['infoWindow'].open(mapView, usersLocs[userID]);
 	});
-	
-	console.log("addInfoWindow()");
-	console.log(usersLocs[userID]);
 }
 
-
+function displayUserDanger(name, latitude, longitude){
+	var alertPlaceholder = document.getElementById('liveAlertPlaceholder');
 	
+	var alertWrapper = document.createElement('div');
+    alertWrapper.setAttribute('class','alert alert-danger alert-dismissible');
+	alertWrapper.setAttribute('role','alert');
+	
+	var iconDanger = document.createElement('i');
+	iconDanger.setAttribute('class', 'bi-exclamation-triangle-fill fs-4');
+	
+	var message = document.createElement('div');
+	message.innerHTML = "<p class='mb-2'>" + name + " in danger!</p><p class='fs-6'>Location: " + latitude + ", " + longitude;
+	
+	var closeBtn = document.createElement('button');
+	closeBtn.setAttribute('type','button');
+	closeBtn.setAttribute('class','btn-close');
+	closeBtn.setAttribute('data-bs-dismiss','alert');
+	closeBtn.setAttribute('aria-label','Close');
+	
+	alertWrapper.append(iconDanger);
+	alertWrapper.append(message);
+	alertWrapper.append(closeBtn);
+
+	alertPlaceholder.append(alertWrapper);
+	
+}
