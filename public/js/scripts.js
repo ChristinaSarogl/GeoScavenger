@@ -20,7 +20,7 @@ var submittedQuestions = 0;
 var checkpointMarker;
 let markers = [];
 var markerExists = false;
-var mapView;
+const usersLocs = {};
 
 //Listen for auth changes
 auth.onAuthStateChanged(user => {
@@ -164,6 +164,7 @@ function loadInfo(user){
             initMapCreate();
         } else {
 			document.getElementById('username').innerHTML = user.displayName;	
+			initMapView();
 			findActiveUsers();
 		}
         
@@ -648,13 +649,9 @@ function findActiveUsers(){
 	});
 	document.getElementById('no-players-message').style.display = "block";
 	document.getElementById('map').style.display = "none";
-	initMapView();
 	
 	var huntRef = firebase.database().ref(huntID);
-	huntRef.on('value',(snapshot) => {
-		console.log("huntRef() snapshot: " + snapshot.val());
-		console.log(snapshot.val());
-		
+	huntRef.on('value',(snapshot) => {		
 		if (snapshot.val() !== null){
 			document.getElementById('no-players-message').style.display = "none";
 			document.getElementById('map').style.display = "block";
@@ -664,38 +661,70 @@ function findActiveUsers(){
 	huntRef.on('child_added', (data) => {
 		console.log("huntRef() added child: " + data.key);
 		var coordinates = Object.values(data.val())[0];
+		var name = Object.values(data.val())[1];
 		console.log(coordinates);
-		addActiveUser(coordinates.latitude, coordinates.longitude);
+		console.log(name);
+		addActiveUser(data.key, name, coordinates.latitude, coordinates.longitude);
 	});
 	
 	huntRef.on('child_changed', (data) => {
 		console.log("huntRef() child changed: " + data.key);
-		console.log(data.val());
+		var coordinates = Object.values(data.val())[0];
+		console.log(coordinates);
+		updateUserLocation(data.key,coordinates.latitude, coordinates.longitude);
 	});
 	
 	var databaseRef = firebase.database().ref();
 	databaseRef.on('child_removed', (data) => {
 		if (data.key === huntID){			
 			console.log("huntRef() child removed: " + data.key);
+			usersLocations = {};
 			document.getElementById('no-players-message').style.display = "block";
 			document.getElementById('map').style.display = "none";
 		}
 	});	
 }
 
-function addActiveUser(latitude, longitude){
-	console.log("add user: {lat: " + latitude + ",long: " + longitude);
+function addActiveUser(userID, name, latitude, longitude){
+	console.log("add user: {lat: " + latitude + ",long: " + longitude + "}");
 	
 	const pos = { lat: latitude, lng: longitude }
 	
-	checkpointMarker = new google.maps.Marker({
+	var mapOptions = {
+	  zoom: 15,
+	  center: pos
+	}
+	
+	var map = new google.maps.Map(document.getElementById("map"), mapOptions);
+	
+	userLocation = new google.maps.Marker({
 		position: pos,
-		mapView,
-		draggable: false
+		map,
+		draggable: false,
+		title: name,		
 	});
 	
-	//mapView.setCenter(pos);
+	const infowindow = new google.maps.InfoWindow({
+		content: name,
+	});
 	
+	userLocation.addListener("click", () => {
+		infowindow.open({
+			anchor: userLocation,
+			map,
+			shouldFocus: false,
+		});
+	 });
+	
+	usersLocs[userID] = userLocation;
+	console.log("usersLocs: " + usersLocs);
+	console.log(usersLocs);
+	
+}
+
+function updateUserLocation(userID, latitude, longitude){
+	marker = usersLocs[userID];
+	marker.setPosition({lat: latitude, lng: longitude});
 }
 
 
