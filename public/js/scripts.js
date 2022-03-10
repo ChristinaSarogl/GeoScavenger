@@ -20,7 +20,9 @@ var submittedQuestions = 0;
 var checkpointMarker;
 let markers = [];
 var markerExists = false;
-const usersLocs = {};
+var mapView;
+var usersLocs = {};
+var activeInfoWindow = null;
 
 //Listen for auth changes
 auth.onAuthStateChanged(user => {
@@ -660,61 +662,46 @@ function findActiveUsers(){
 	
 	huntRef.on('child_added', (data) => {
 		console.log("huntRef() added child: " + data.key);
-		var coordinates = Object.values(data.val())[0];
-		var name = Object.values(data.val())[1];
-		console.log(coordinates);
-		console.log(name);
-		addActiveUser(data.key, name, coordinates.latitude, coordinates.longitude);
+		console.log(data.val());
+		var coordinates = Object.values(data.val())[0];		
+		addActiveUser(data.key, coordinates.latitude, coordinates.longitude);
 	});
 	
 	huntRef.on('child_changed', (data) => {
-		console.log("huntRef() child changed: " + data.key);
 		var coordinates = Object.values(data.val())[0];
-		console.log(coordinates);
-		updateUserLocation(data.key,coordinates.latitude, coordinates.longitude);
+		var name = Object.values(data.val())[1];
+		updateUserLocation(data.key, name, coordinates.latitude, coordinates.longitude);
+	});
+	 
+	huntRef.on('child_removed',(data) => {
+		console.log("huntRef() child removed: " + data.key);
+		usersLocs[data.key].setMap(null);
+		delete usersLocs[data.key];
 	});
 	
 	var databaseRef = firebase.database().ref();
 	databaseRef.on('child_removed', (data) => {
 		if (data.key === huntID){			
 			console.log("huntRef() child removed: " + data.key);
-			usersLocations = {};
 			document.getElementById('no-players-message').style.display = "block";
 			document.getElementById('map').style.display = "none";
 		}
 	});	
 }
 
-function addActiveUser(userID, name, latitude, longitude){
+function addActiveUser(userID, latitude, longitude){
 	console.log("add user: {lat: " + latitude + ",long: " + longitude + "}");
 	
 	const pos = { lat: latitude, lng: longitude }
 	
-	var mapOptions = {
-	  zoom: 15,
-	  center: pos
-	}
-	
-	var map = new google.maps.Map(document.getElementById("map"), mapOptions);
-	
 	userLocation = new google.maps.Marker({
 		position: pos,
-		map,
+		map: mapView,
 		draggable: false,
-		title: name,		
+		title: null
 	});
 	
-	const infowindow = new google.maps.InfoWindow({
-		content: name,
-	});
-	
-	userLocation.addListener("click", () => {
-		infowindow.open({
-			anchor: userLocation,
-			map,
-			shouldFocus: false,
-		});
-	 });
+	mapView.setCenter(pos);
 	
 	usersLocs[userID] = userLocation;
 	console.log("usersLocs: " + usersLocs);
@@ -722,9 +709,31 @@ function addActiveUser(userID, name, latitude, longitude){
 	
 }
 
-function updateUserLocation(userID, latitude, longitude){
+function updateUserLocation(userID, name, latitude, longitude){
+	console.log(usersLocs);
 	marker = usersLocs[userID];
+	console.log("Edit");
+	console.log(marker);
+	
+	if(marker.getTitle() === null){
+		marker.title = name;
+		addInfoWindow(userID, name);
+	}
+	
 	marker.setPosition({lat: latitude, lng: longitude});
+}
+
+function addInfoWindow(userID, message){
+	usersLocs[userID]['infoWindow'] = new google.maps.InfoWindow({
+		content: message
+	});
+	
+	google.maps.event.addListener(usersLocs[userID], 'click', function(){
+		this['infoWindow'].open(mapView, usersLocs[userID]);
+	});
+	
+	console.log("addInfoWindow()");
+	console.log(usersLocs[userID]);
 }
 
 
