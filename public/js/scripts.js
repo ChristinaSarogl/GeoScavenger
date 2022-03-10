@@ -183,17 +183,19 @@ function loadHunts(user){
                 db.collection("hunts").doc(doc).get()
                 .then((huntInfo) =>{
                     var row = document.createElement('tr');
-					row.setAttribute('onclick',"window.location='active/" + huntInfo.id + "'");
 
                     var name = document.createElement('td');
                     name.innerHTML = huntInfo.get('name');
+					name.setAttribute('onclick',"window.location='active/" + huntInfo.id + "'");
 
                     var date = document.createElement('td');
                     date.innerHTML = huntInfo.get('date').toDate().toLocaleString('en-US',{
                         day: 'numeric', year: 'numeric', month: 'long'});
+					date.setAttribute('onclick',"window.location='active/" + huntInfo.id + "'");
 
                     var players = document.createElement('td');
                     players.innerHTML = huntInfo.get('players');
+					players.setAttribute('onclick',"window.location='active/" + huntInfo.id + "'");
 
                     var del = document.createElement('td');
                     var string = document.createElement('p');
@@ -506,22 +508,36 @@ function deleteThisHunt(position){
     var user = auth.currentUser;
     db.collection("managers").doc(user.uid).get()
     .then((doc)=>{
-        deleteHunt(user, doc.get('created_hunts')[position]);
-    });
-    document.getElementById("hunts-table").deleteRow(position+1);
+		
+		var databaseRef = firebase.database().ref();	
+		databaseRef.child(doc.get('created_hunts')[position]).get().then((snapshot) => {
+			if (snapshot.exists()) {
+				console.log("Active users playing!");
+			} else {
+				console.log("Safe to delete");
+				
+				deleteHunt(user, doc.get('created_hunts')[position]);
+		
+				document.getElementById("hunts-table").deleteRow(position+1);
 
-    var delStrings = document.getElementById('hunts-table').getElementsByClassName('clickable');
+				var delStrings = document.getElementById('hunts-table').getElementsByClassName('clickable');
+			
+				if (delStrings.length === 0){
+					document.querySelector('#hunts-table').style.display = "none";
+					document.querySelector('#deleteAll').style.display = "none";
+					document.querySelector('#noHuntsMessage').style.display = "block";
+				} else {
+					for (let entry = 0; entry <= delStrings.length-1; entry++){
+						delStrings[entry].setAttribute('onclick', 'deleteThisHunt(' + entry + ')');
+					}				
+				}
+			}
+		}).catch((error) => {
+		  console.error(error);
+		});	
+    });
 	
-	if (delStrings.length === 0){
-		document.querySelector('#hunts-table').style.display = "none";
-		document.querySelector('#deleteAll').style.display = "none";
-		document.querySelector('#noHuntsMessage').style.display = "block";
-	} else {
-		for (let entry = 0; entry <= delStrings.length-1; entry++){
-			delStrings[entry].setAttribute('onclick', 'deleteThisHunt(' + entry + ')');
-		}
-	}	
-        
+	
 }
 
 function deleteAllHunts(){
@@ -529,49 +545,67 @@ function deleteAllHunts(){
     //document.getElementById('main').style.display="none";
 
     var user = auth.currentUser;
+	var position = 0;
 
     //Get all user's hunt ids
     db.collection("managers").doc(user.uid).get().then((doc)=>{    
         doc.get('created_hunts').forEach((id) => {
-            deleteHunt(user, id);
+			
+			var databaseRef = firebase.database().ref();	
+			databaseRef.child(id).get().then((snapshot) => {
+				if (snapshot.exists()) {
+					console.log("Active users playing!");
+				} else {
+					console.log("Safe to delete");					
+					deleteHunt(user, id);
+					document.getElementById("hunts-table").deleteRow(position+1);
+				}
+				position++;
+			}).catch((error) => {
+			  console.error(error);
+			});	
+            
         });
         
         //document.getElementById('loader').style.display="none";
         //document.getElementById('main').style.display="block";
     });  
-    
-    document.querySelector('#hunts-table').style.display = "none";
-    document.querySelector('#deleteAll').style.display = "none";
-    document.querySelector('#noHuntsMessage').style.display = "block";
+	
+	var delStrings = document.getElementById('hunts-table').getElementsByClassName('clickable');
+			
+	if (delStrings.length === 0){		
+		document.querySelector('#hunts-table').style.display = "none";
+		document.querySelector('#deleteAll').style.display = "none";
+		document.querySelector('#noHuntsMessage').style.display = "block";
+	}
 }
 
-function deleteHunt(user, huntID){
+function deleteHunt(user, huntID){	
+	db.collection("hunts").doc(huntID).get().then((hunt)=>{
+		//Get the hunt's checkpoints
+		hunt.get('checkpoints').forEach((checkpoint) =>{
 
-    db.collection("hunts").doc(huntID).get().then((hunt)=>{
-        //Get the hunt's checkpoints
-        hunt.get('checkpoints').forEach((checkpoint) =>{
+			//Delete hunt's checkpoints
+			db.collection('checkpoints').doc(checkpoint).delete().then(() => {
+				console.log("Checkpoint successfully deleted!");
+			}).catch((error) => {
+				console.error("Error removing document: ", error);
+			});   
 
-            //Delete hunt's checkpoints
-            db.collection('checkpoints').doc(checkpoint).delete().then(() => {
-                console.log("Checkpoint successfully deleted!");
-            }).catch((error) => {
-                console.error("Error removing document: ", error);
-            });   
+		});
+	
 
-        });
-		
+		db.collection("hunts").doc(huntID).delete().then(() => {
+			console.log("Hunt successfully deleted!");
+		}).catch((error) => {
+			console.error("Error removing document: ", error);
+		}); 
 
-        db.collection("hunts").doc(huntID).delete().then(() => {
-            console.log("Hunt successfully deleted!");
-        }).catch((error) => {
-            console.error("Error removing document: ", error);
-        }); 
-
-        db.collection('managers').doc(user.uid).update({
-            created_hunts: firebase.firestore.FieldValue.arrayRemove(huntID)
-        });
-        console.log("Hunt removed from list!");
-    });   
+		db.collection('managers').doc(user.uid).update({
+			created_hunts: firebase.firestore.FieldValue.arrayRemove(huntID)
+		});
+		console.log("Hunt removed from list!");    
+	});
 }
 
 // Initialize and add the map
