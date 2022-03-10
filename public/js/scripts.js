@@ -31,8 +31,8 @@ auth.onAuthStateChanged(user => {
     } else {
 		var path = window.location.pathname;
         var page = path.split("/").pop();
-		if(page !== "login"){
-			window.location.href = "login";
+		if(page !== "login" && page !== "register"){
+			window.location.href = "/~1801448/geohunt/public/login";
 		}			
         console.log("User logged out");
     }
@@ -129,7 +129,6 @@ function signup(){
 
 function logoutUser(){
     auth.signOut();
-    window.location.href = "login";
 }
 
 function loadInfo(user){
