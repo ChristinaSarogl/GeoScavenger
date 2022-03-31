@@ -6,16 +6,16 @@
                         <p class="fw-bold fs-4 mb-3 text-uppercase title">Login</p>
                         <p class="mb-3" id="error-message">Please enter your login and password!</p>
 
-                        <form class="text-start" id="login-form">
-                            <div class="mb-3 px-3">
-                                <input type="email" class="form-control" id="login-email"
-                                    placeholder="Email address" required> 
-                            </div>
-
-                            <div class="mb-2 px-3">
-                                <input type="password" class="form-control" id="login-password"
-                                    placeholder="Password" required>
-                            </div>
+                        <form class="text-start" id="login-form">							
+							<div class="form-floating mb-3 mx-3">
+								<input type="email" class="form-control" id="login-email" placeholder="name@example.com" required>
+								<label for="login-email">Email address</label>
+							</div>
+							
+							<div class="form-floating mb-3 mx-3">
+								<input type="password" class="form-control" id="login-password" placeholder="Password" required>
+								<label for="login-password">Password</label>
+							</div>
 
                             <p class="small mb-3 px-3 pb-lg-2 text-end"><a class="text-secondary" href="#!">Forgot password?</a></p>
 

@@ -32,7 +32,7 @@ auth.onAuthStateChanged(user => {
 		var path = window.location.pathname;
         var page = path.split("/").pop();
 		if(page !== "login" && page !== "register"){
-			window.location.href = "/~1801448/geohunt/public/login";
+			window.location.href = "/~1801448/geoscavenger/public/login";
 		}			
         console.log("User logged out");
     }
