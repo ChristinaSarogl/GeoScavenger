@@ -19,12 +19,12 @@
 	<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 	<script src="https://apis.google.com/js/api.js"></script>
 
-    <title>GeoHunt</title>
+    <title>GeoScavenger</title>
   </head>
 
   <body>
     <header class="navbar navbar-dark sticky-top flex-md-nowrap p-0">
-        <span class="navbar-brand title col-md-3 col-lg-2 me-0 px-3 disabled">GeoHunt</span>
+        <span class="navbar-brand title col-md-3 col-lg-2 me-0 px-3 disabled">GEOSCAVENGER</span>
         <button class="navbar-toggler d-md-none collapsed me-3" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
           <span class="navbar-toggler-icon"></span>
         </button>

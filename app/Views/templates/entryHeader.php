@@ -16,12 +16,12 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
-    <title>GeoHunt</title>
+    <title>GeoScavenger</title>
   </head>
 
   <body>
     <nav class="navbar py-1">
         <div class="container-fluid justify-content-center">
-          <span class="navbar-brand title m-0 p-1 h1 fs-4">GEOHUNT</span>
+          <span class="navbar-brand title m-0 p-1 h1 fs-4">GEOSCAVENGER</span>
         </div>
     </nav>
