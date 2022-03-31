@@ -571,9 +571,6 @@ function deleteAllHunts(){
 			});	
             
         });
-        
-        //document.getElementById('loader').style.display="none";
-        //document.getElementById('main').style.display="block";
     });  
 	
 	var delStrings = document.getElementById('hunts-table').getElementsByClassName('clickable');
@@ -737,6 +734,8 @@ function findActiveUsers(){
 			var name = Object.values(data.val())[2];
 			displayUserDanger(data.key, name, coordinates.latitude, coordinates.longitude);
 		} else {
+			//Check if there is a danger alert for this user
+			deleteDangerAlert(data.key);
 			var coordinates = Object.values(data.val())[0];
 			var name = Object.values(data.val())[1];
 		}
@@ -829,8 +828,13 @@ function displayUserDanger(userID, name, latitude, longitude){
 		alertPlaceholder.append(alertWrapper);
 	} else {
 		elementId = "location-" + userID;
-		console.log(elementId);
 		locationAlert = document.getElementById(elementId);
 		locationAlert.innerHTML = "Location: " + latitude + ", " + longitude;
 	}	
+}
+
+function deleteDangerAlert(userId){
+	if(document.getElementById(userId) != null){
+		document.getElementById(userId).remove();
+	}
 }
