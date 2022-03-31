@@ -26,7 +26,7 @@
 								<form id="create-form"></form>
 								<form id="question-form"></form>
 
-								<p class="mb-5 text-danger" id="error-message"></p>
+								<p class="mb-3 text-danger" id="error-message" style="display:none;"></p>
 
 								<div class="input-group">
 									<div class="input-group-text">Hunt name</div>
@@ -66,6 +66,11 @@
 											</select>
 										</div>
 
+										 <div class="mb-3 text-start">
+											<label for="checkpoint-clue" class="form-label fs-6">Checkpoint clue</label>
+											<textarea class="form-control" id="checkpoint-clue" rows="4" form="question-form" required></textarea>
+										</div>
+										
 										<div class="input-group input-group-sm mb-3">
 											<span class="input-group-text">Question</span>
 											<input type="text" class="form-control" id="challenge-question" placeholder="Question" form="question-form" required>

@@ -372,8 +372,11 @@ $(document).ready(function() {
         var checkpoint = questionForm['challenge-checkpoint'].value;
         var index = questionForm['challenge-checkpoint'].selectedIndex;
         
+		var clue = questionForm['checkpoint-clue'].value;
         var question = questionForm['challenge-question'].value;
+		
         checkpointQuestionInfo.question = question;
+		checkpointQuestionInfo.clue = clue;
 
         for(let answerNo = 0; answerNo < 4; answerNo++){
             var answer = questionForm['answer' + (answerNo + 1)].value;
@@ -390,10 +393,8 @@ $(document).ready(function() {
         } else {
             questionsInfo[checkpoint] = checkpointQuestionInfo;
         }
-
+		
         document.getElementById('chal' + (index-1)).style.backgroundColor = "#5BA6A2";
-        document.getElementById('chal' + (index-1)).style.color = "white";
-        var string = document.getElementById('chal' + (index-1)).value;
         var p = document.getElementById('chal' + (index-1)).getElementsByTagName('p');
         for (let i = 0; i <= p.length-1; i++){
             p[i].style.color = 'white';
@@ -414,6 +415,7 @@ function resetForm(index){
         //If the question is already saved, load
         if (typeof qDetails !== 'undefined'){
             document.querySelector('#challenge-question').value = qDetails.question;
+			document.querySelector('#checkpoint-clue').value = qDetails.clue;
             document.querySelector('#answer1').value = qDetails.answers[0];
             document.querySelector('#answer2').value = qDetails.answers[1];
             document.querySelector('#answer3').value = qDetails.answers[2];
@@ -440,17 +442,20 @@ $(document).ready(function() {
         var checkpoints = document.getElementById('checkpoint-list').getElementsByTagName('li');
 		
         if (checkpoints.length < 3){
+			document.getElementById('error-message').style.display = "block";
             document.getElementById('error-message').innerHTML="You have to add at least 3 checkpoints to the hunt!";
         } else if(checkpoints.length !== submittedQuestions){
+			document.getElementById('error-message').style.display = "block";
             document.getElementById('error-message').innerHTML="You have to enter a question for each checkpoint!";
         } else{
-            // document.getElementById('loader').style.display="block";
-            // document.getElementById('main').style.display="none";
+            document.getElementById('loader').style.display="block";
+            document.getElementById('main').style.display="none";
 
             for (let checkp = 1; checkp <= checkpoints.length; checkp ++){
 
                 //Save all the questions details
                 var questionDetails  = questionsInfo['Checkpoint '+ checkp];
+				var clue = questionDetails['clue'];
                 var question = questionDetails['question'];
                 var rightAnswer = questionDetails['rightAnswerIndex'];
                 var answers = questionDetails['answers'];
@@ -466,6 +471,7 @@ $(document).ready(function() {
                 
                 checkpointRef.set({
                     location: new firebase.firestore.GeoPoint(lat,lng),
+					clue: clue,
                     question: question,
                     rightAnswerIndex: parseInt(rightAnswer),
                     0: answers[0],
@@ -497,6 +503,7 @@ $(document).ready(function() {
                 window.location.href = "home"; 
             })
         }
+		
         e.preventDefault();
     })
 });
