@@ -121,3 +121,23 @@ a{
 .clickable:hover{
 	cursor: pointer;
 }
+
+/* Spinner */
+#loader {
+    width: 120px;
+    height: 120px;
+    position: absolute;
+    top: 40%;
+    left: 45%;
+    z-index: 2;
+    border: 16px solid #5BA6A2;
+	border-top: 16px solid #4D452A;
+    border-radius: 50%;
+	animation: spin 2s cubic-bezier(0.68, -0.55, 0.27, 1.55) infinite;
+
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}

@@ -160,8 +160,6 @@ function loadInfo(user){
             pathReference.getDownloadURL().then((url) => {
                 document.getElementById('add-checkpoint').setAttribute('src', url);
             });
-            // document.getElementById('loader').style.display="none";
-            // document.getElementById('main').style.display="block";
             initMapCreate();
         } else {
 			document.getElementById('username').innerHTML = user.displayName;	
@@ -210,7 +208,8 @@ function loadHunts(user){
 
                     $('#hunts-table').append(row);
                     i++;
-                });                
+                }); 
+				
            });
 
         } else {
@@ -220,8 +219,8 @@ function loadHunts(user){
         }
 
         document.getElementById('username').innerHTML = user.displayName;
-        // document.getElementById('loader').style.display="none";
-        // document.getElementById('main').style.display="block";
+        document.getElementById('loader').style.display="none";
+        document.getElementById('main').style.display="block";
 
     });
 
@@ -643,6 +642,9 @@ function initMapCreate() {
     } else{
         handleLocationError(false);
     }
+	
+	document.getElementById('loader').style.display="none";
+	document.getElementById('main').style.display="block";
 }
 
 function initMapView() {
@@ -666,6 +668,9 @@ function initMapView() {
     } else{
         handleLocationError(false);
     }
+	
+	document.getElementById('loader').style.display="none";
+	document.getElementById('main').style.display="block";
 }
 
 function handleLocationError(browserHasGeolocation) {
