@@ -39,7 +39,7 @@
 						<div class="position-sticky pt-3">
 							<ul class="nav flex-column">
 								<li>
-									<a class="d-flex align-items-center disabled ps-2 mt-3 mb-5">
+									<a class="d-flex align-items-center disabled ps-2 mt-3 mb-4">
 										<img class="rounded-circle" id="profile-image" src=""
 											width="50" height="50" alt="Profile picture">
 										<span class="fs-5 ms-2 text-dark" id="username">Username</span>

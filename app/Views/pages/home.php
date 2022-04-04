@@ -1,13 +1,13 @@
 								<li class="nav-item">
 									<a class="nav-link active" href="home">
-										<i class="fs-4 bi-speedometer2"></i> <span>Dashboard</span>
+										<i class="fs-4 me-2 bi-speedometer2"></i> <span>Dashboard</span>
 									</a>
 								</li>
 								<li class="nav-item">
 									<a class="nav-link link-dark" href="create">
-										<i class="fs-4 bi-pin-map"></i> <span>Create hunt</span>
+										<i class="fs-4 me-2 bi-pin-map"></i> <span>Create hunt</span>
 									</a>
-								</li>
+								</li>								
 							</ul>
 							<hr>
 							<a class="nav-link link-danger" href="#" onclick="logoutUser()">
