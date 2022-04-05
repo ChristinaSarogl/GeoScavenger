@@ -43,35 +43,31 @@
 
 								<div class="col-md-5 col-lg-4 p-0">
 									<div class="ps-3 text-start h-100 rounded-start" style="background-color:#5BA6A2">
-										<p class="pt-2 mb-2 text-white">Active users <span id="chat-users-number"></span></p>
+										<p class="pt-2 mb-2 text-white">Active users</p>
 										
 										<div class="ms-2 me-5" id="chat-users"></div>
 									</div>
 								</div>
 								
-								<div class="col-md-7 col-lg-8 p-0" style="height: 500px; display: none;">
+								<div class="col-md-7 col-lg-8 p-0" id="chat-container" style="height: 500px; display: none;">
 									<div class="text-start">
-										<p class="m-0 py-2 ps-4" style="background-color: #dfdfdf;"></p>
+										<p class="m-0 py-2 ps-4" id="chat-username" style="background-color: #dfdfdf;"></p>
 									</div>
 									
 									<hr class="m-0">
-									<ul class="py-2 ps-3 m-0 bg-white h-100" id="messages-list">
-										<li class="mb-2 text-start">
-											<p class="message d-inline-block rounded p-2 m-0">An item</p>
-										</li>
-										<li class="mb-2 text-start">
-											<p class="message d-inline-block rounded p-2 m-0">An item</p>
-										</li>                                                
+									<ul class="py-2 ps-3 m-0 bg-white h-100" id="messages-list">                                      
 									</ul>
 									
-									<div class="d-flex align-items-center justify-content-center py-2" style="background-color: #dfdfdf;">
-										<div class="col-8 col-md-8 col-lg-9 me-2">
-											<input type="text" class="form-control" >
+									<form id="message-form">
+										<div class="d-flex align-items-center justify-content-center py-2" style="background-color: #dfdfdf;">
+											<div class="col-8 col-md-8 col-lg-9 me-2">
+												<input type="text" class="form-control" id="chat-message-input">
+											</div>
+											<div class="col-auto">
+												<input class="btn btn-green" type="submit" value="Send" form="message-form"/>
+											</div>										
 										</div>
-										<div class="col-auto">
-											<button type="submit" class="btn btn-green">Send</button>
-										</div>
-									</div>
+									</form>
 								</div>
 								
 							</div>

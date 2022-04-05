@@ -23,6 +23,7 @@ var markerExists = false;
 var mapView;
 var usersLocs = {};
 var activeInfoWindow = null;
+var messagesRef;
 
 //Listen for auth changes
 auth.onAuthStateChanged(user => {
@@ -712,7 +713,7 @@ function findActiveUsers(){
 	document.getElementById('map').style.display = "none";
 	document.getElementById('messages-toggle').disabled = true;
 	
-	var huntRef = firebase.database().ref(huntID);
+	var huntRef = firebase.database().ref(huntID + '/players');
 	huntRef.on('value',(snapshot) => {	
 		if (snapshot.val() !== null){
 			document.getElementById('no-players-message').style.display = "none";
@@ -724,49 +725,25 @@ function findActiveUsers(){
 	huntRef.on('child_added', (data) => {
 		console.log("huntRef() added child: " + data.key);
 		console.log(data.val());
-		var name = Object.values(data.val())[0];
-		console.log(name);
+		var name = Object.values(data.val()["name"]).join('');
+		console.log(data.val()["location"]);
 		
 		//Add user to chat
 		var chatUsers = document.getElementById('chat-users');
 		var newUser = document.createElement('button');
 		newUser.setAttribute('type','button');
-		newUser.setAttribute('class','btn btn-green mb-1 py-1 text-start w-100');
+		newUser.setAttribute('class','btn btn-green mb-1 py-1 text-start w-100');	
+		newUser.setAttribute('id', 'button-' + data.key);
+		newUser.setAttribute('onclick', "loadMessages('" + huntID + "','" + name + "','" + data.key + "')");
 		newUser.innerHTML = name;
-		
 		chatUsers.append(newUser);
 		
-		var coordinates = Object.values(data.val())[1];
-		if(coordinates !== undefined){
-			updateUserLocation(data.key, name, coordinates.latitude, coordinates.longitude);
+		if (data.val()["location"] !== undefined){
+			updateUserLocation(data.key, name, data.val()["location"].latitude, data.val()["location"].longitude);
+			if(data.val()["HELP"] !== undefined){
+				displayUserDanger(data.key, name, data.val()["location"].latitude, data.val()["location"].longitude);
+			}
 		}
-		
-		/* if(data.val()["HELP"] !== undefined){
-			var coordinates = Object.values(data.val())[1];
-			addActiveUser(data.key, coordinates.latitude, coordinates.longitude);
-			var name = Object.values(data.val())[2];
-			if (name !== undefined){
-				updateUserLocation(data.key, name, coordinates.latitude, coordinates.longitude);
-				displayUserDanger(data.key, name, coordinates.latitude, coordinates.longitude);
-			}
-		} else {
-			var name = Object.values(data.val())[0];
-			console.log(name);
-			var coordinates = Object.values(data.val())[1];
-			addActiveUser(data.key, coordinates.latitude, coordinates.longitude);
-			if (coordinates.latitude !== undefined){
-				updateUserLocation(data.key, name, coordinates.latitude, coordinates.longitude);
-				
-				//Add user to chat
-				var chatUsers = document.getElementById('chat-users');
-				var newUser = document.createElement('button');
-				newUser.setAttribute('type','button');
-				newUser.setAttribute('class','btn btn-green mb-1 py-1 text-start w-100');
-				newUser.innerHTML = name;
-				
-				chatUsers.append(newUser);
-			}
-		} */
 		
 	});
 	
@@ -793,14 +770,16 @@ function findActiveUsers(){
 		delete usersLocs[data.key];
 	});
 	
-	var databaseRef = firebase.database().ref();
+	var databaseRef = firebase.database().ref(huntID);
 	databaseRef.on('child_removed', (data) => {
-		if (data.key === huntID){			
+		console.log(data);
+		if (data.key === "players"){			
 			console.log("huntRef() child removed: " + data.key);
 			document.getElementById('no-players-message').style.display = "block";
 			document.getElementById('map').style.display = "none";
 			document.getElementById('messages-toggle').disabled = true;
 			document.getElementById('chat-users').innerHTML = "";
+			document.getElementById('chat-container').style.display = "none";
 			openMap();
 		}
 	});	
@@ -818,18 +797,14 @@ function updateUserLocation(userID, name, latitude, longitude){
 			position: pos,
 			map: mapView,
 			draggable: false,
-			title: null
+			title: name
 		});
 	
 		mapView.setCenter(pos);
 		
 		usersLocs[userID] = userLocation;
-	} else {
-		if(marker.getTitle() === null){
-			marker.title = name;
-			addInfoWindow(userID, name);
-		}
-		
+		addInfoWindow(userID, name);
+	} else {		
 		marker.setPosition({lat: latitude, lng: longitude});
 	}	
 }
@@ -849,7 +824,7 @@ function addInfoWindow(userID, message){
 function displayUserDanger(userID, name, latitude, longitude){
 	var alertPlaceholder = document.getElementById('liveAlertPlaceholder');
 	
-	if(document.getElementById(userID) == null){
+	if(document.getElementById('location-' + userID) == null){
 		var alertWrapper = document.createElement('div');
 		alertWrapper.setAttribute('class','alert alert-danger alert-dismissible text-center');
 		alertWrapper.setAttribute('id', userID);
@@ -895,3 +870,60 @@ function deleteDangerAlert(userId){
 		document.getElementById(userId).remove();
 	}
 }
+
+function loadMessages(huntID, username, userID){
+	var messageList = document.getElementById('messages-list');
+	messageList.innerHTML = "";
+	
+	messagesRef = firebase.database().ref(huntID + '/messages/' + userID);
+	
+	messagesRef.on('child_added', (data) => {
+		var message = data.val()["text"];
+		
+		var messageWrapper = document.createElement('li');
+		messageWrapper.setAttribute('class','mb-2 text-start');
+		
+		var messageText = document.createElement('p');
+		messageText.setAttribute('class','message d-inline-block rounded p-2 m-0');
+		messageText.innerHTML = message;
+		
+		var sender = document.createElement('small');
+		sender.setAttribute('class','d-block text-secondary');
+		sender.innerHTML = data.val()["name"];
+		
+		messageWrapper.append(messageText);		
+		messageWrapper.append(sender);		
+		messageList.append(messageWrapper);
+
+		const scrollToBottom = (node) => {
+			node.scrollTop = node.scrollHeight;
+		}
+
+		scrollToBottom(document.getElementById("messages-list"));		
+		
+	});
+	
+	document.getElementById('chat-username').innerHTML = username;
+	document.getElementById('chat-container').style.display = "block";		
+}
+
+$(document).ready(function() {
+    $(document).on('submit', '#message-form', function(e) {
+		var messageInput = document.getElementById("chat-message-input");
+		var message = messageInput.value;
+		
+		if(message !== ""){
+			const msg = {
+				name: "Admin",
+				text: message
+			};
+			
+			messagesRef.push(msg);
+		}		
+		
+		messageInput.value = "";
+		
+		e.preventDefault();
+	});
+});
+
