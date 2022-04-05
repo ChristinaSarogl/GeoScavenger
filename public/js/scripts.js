@@ -685,6 +685,23 @@ function handleLocationError(browserHasGeolocation) {
     }
 }
 
+
+function openMap(){
+	document.getElementById('map-container').style.display = "block";
+	document.getElementById('messages-container').style.display = "none";
+
+	document.getElementById('map-toggle').setAttribute('class','nav-link active');
+	document.getElementById('messages-toggle').setAttribute('class','nav-link link-dark');
+}
+
+function openMessages(){
+	document.getElementById('map-container').style.display = "none";
+	document.getElementById('messages-container').style.display = "block";
+
+	document.getElementById('messages-toggle').setAttribute('class','nav-link active');
+	document.getElementById('map-toggle').setAttribute('class','nav-link link-dark');
+}
+
 function findActiveUsers(){
 	var huntID = document.querySelector('#hunt-name').innerHTML;
 	
@@ -693,36 +710,63 @@ function findActiveUsers(){
 	});
 	document.getElementById('no-players-message').style.display = "block";
 	document.getElementById('map').style.display = "none";
+	document.getElementById('messages-toggle').disabled = true;
 	
 	var huntRef = firebase.database().ref(huntID);
 	huntRef.on('value',(snapshot) => {	
 		if (snapshot.val() !== null){
 			document.getElementById('no-players-message').style.display = "none";
 			document.getElementById('map').style.display = "block";
+			document.getElementById('messages-toggle').disabled = false;
 		}
 	});
 	
 	huntRef.on('child_added', (data) => {
 		console.log("huntRef() added child: " + data.key);
 		console.log(data.val());
-		if(data.val()["HELP"] !== undefined){
+		var name = Object.values(data.val())[0];
+		console.log(name);
+		
+		//Add user to chat
+		var chatUsers = document.getElementById('chat-users');
+		var newUser = document.createElement('button');
+		newUser.setAttribute('type','button');
+		newUser.setAttribute('class','btn btn-green mb-1 py-1 text-start w-100');
+		newUser.innerHTML = name;
+		
+		chatUsers.append(newUser);
+		
+		var coordinates = Object.values(data.val())[1];
+		if(coordinates !== undefined){
+			updateUserLocation(data.key, name, coordinates.latitude, coordinates.longitude);
+		}
+		
+		/* if(data.val()["HELP"] !== undefined){
 			var coordinates = Object.values(data.val())[1];
 			addActiveUser(data.key, coordinates.latitude, coordinates.longitude);
 			var name = Object.values(data.val())[2];
-			console.log(name);
 			if (name !== undefined){
 				updateUserLocation(data.key, name, coordinates.latitude, coordinates.longitude);
 				displayUserDanger(data.key, name, coordinates.latitude, coordinates.longitude);
 			}
 		} else {
-			var coordinates = Object.values(data.val())[0];
-			addActiveUser(data.key, coordinates.latitude, coordinates.longitude);
-			var name = Object.values(data.val())[1];
+			var name = Object.values(data.val())[0];
 			console.log(name);
-			if (name !== undefined){
+			var coordinates = Object.values(data.val())[1];
+			addActiveUser(data.key, coordinates.latitude, coordinates.longitude);
+			if (coordinates.latitude !== undefined){
 				updateUserLocation(data.key, name, coordinates.latitude, coordinates.longitude);
+				
+				//Add user to chat
+				var chatUsers = document.getElementById('chat-users');
+				var newUser = document.createElement('button');
+				newUser.setAttribute('type','button');
+				newUser.setAttribute('class','btn btn-green mb-1 py-1 text-start w-100');
+				newUser.innerHTML = name;
+				
+				chatUsers.append(newUser);
 			}
-		}
+		} */
 		
 	});
 	
@@ -755,37 +799,39 @@ function findActiveUsers(){
 			console.log("huntRef() child removed: " + data.key);
 			document.getElementById('no-players-message').style.display = "block";
 			document.getElementById('map').style.display = "none";
+			document.getElementById('messages-toggle').disabled = true;
+			document.getElementById('chat-users').innerHTML = "";
+			openMap();
 		}
 	});	
-}
-
-function addActiveUser(userID, latitude, longitude){
-	console.log("add user: {lat: " + latitude + ",long: " + longitude + "}");
-	
-	const pos = { lat: latitude, lng: longitude }
-	
-	userLocation = new google.maps.Marker({
-		position: pos,
-		map: mapView,
-		draggable: false,
-		title: null
-	});
-	
-	mapView.setCenter(pos);
-	
-	usersLocs[userID] = userLocation;
-	
 }
 
 function updateUserLocation(userID, name, latitude, longitude){
 	marker = usersLocs[userID];
 	
-	if(marker.getTitle() === null){
-		marker.title = name;
-		addInfoWindow(userID, name);
-	}
+	if (marker == undefined){
+		console.log("add user: {lat: " + latitude + ",long: " + longitude + "}");
 	
-	marker.setPosition({lat: latitude, lng: longitude});
+		const pos = { lat: latitude, lng: longitude }
+		
+		userLocation = new google.maps.Marker({
+			position: pos,
+			map: mapView,
+			draggable: false,
+			title: null
+		});
+	
+		mapView.setCenter(pos);
+		
+		usersLocs[userID] = userLocation;
+	} else {
+		if(marker.getTitle() === null){
+			marker.title = name;
+			addInfoWindow(userID, name);
+		}
+		
+		marker.setPosition({lat: latitude, lng: longitude});
+	}	
 }
 
 function addInfoWindow(userID, message){
@@ -805,15 +851,24 @@ function displayUserDanger(userID, name, latitude, longitude){
 	
 	if(document.getElementById(userID) == null){
 		var alertWrapper = document.createElement('div');
-		alertWrapper.setAttribute('class','alert alert-danger alert-dismissible');
+		alertWrapper.setAttribute('class','alert alert-danger alert-dismissible text-center');
 		alertWrapper.setAttribute('id', userID);
 		alertWrapper.setAttribute('role','alert');
+		
+		var alertTitle = document.createElement('div');
+		alertTitle.setAttribute('class','d-flex align-items-center justify-content-center');		
 		
 		var iconDanger = document.createElement('i');
 		iconDanger.setAttribute('class', 'bi-exclamation-triangle-fill fs-4');
 		
-		var message = document.createElement('div');
-		message.innerHTML = "<p class='mb-2'>" + name + " in danger!</p><p class='fs-6' id='location-" + userID + "'>Location: " + latitude + ", " + longitude;
+		var userName = document.createElement('p');
+		userName.setAttribute('class','m-0 ps-2');
+		userName.innerHTML = name + " in danger!";
+		
+		var userLocation = document.createElement('p');
+		userLocation.setAttribute('class','fs-6 mb-2');
+		userLocation.setAttribute('id','location-' + userID);
+		userLocation.innerHTML = "Location: " + latitude + ", " + longitude;	
 		
 		var closeBtn = document.createElement('button');
 		closeBtn.setAttribute('type','button');
@@ -821,8 +876,10 @@ function displayUserDanger(userID, name, latitude, longitude){
 		closeBtn.setAttribute('data-bs-dismiss','alert');
 		closeBtn.setAttribute('aria-label','Close');
 		
-		alertWrapper.append(iconDanger);
-		alertWrapper.append(message);
+		alertTitle.append(iconDanger);
+		alertTitle.append(userName);		
+		alertWrapper.append(alertTitle);
+		alertWrapper.append(userLocation);
 		alertWrapper.append(closeBtn);
 
 		alertPlaceholder.append(alertWrapper);

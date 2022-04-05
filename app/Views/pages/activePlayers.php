@@ -18,38 +18,42 @@
 
 					<main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
 						<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-							<h1 class="h2" id="hunt-name"><?= esc($huntId) ?></h1>
-						</div>
-					  
-						<div class="card">
-							<div class="card-body text-center">
-								<div id="liveAlertPlaceholder"></div>
-
-								<p id="no-players-message">There are no active players at right now.</p>
-
-								<div class="bg-success" id="map"  style="height: 500px;"></div>
-							</div>							
+							<h1 class="h3" id="hunt-name"><?= esc($huntId) ?></h1>
 						</div>
 						
-						<div class="mt-3 mb-4">
+						<div id="liveAlertPlaceholder"></div>
+						
+						<ul class="nav nav-tabs">
+							<li class="nav-item">
+								<button class="nav-link active" id="map-toggle" onclick="openMap()">Map</button>
+							</li>
+							<li class="nav-item">
+								<button class="nav-link link-dark" id="messages-toggle" onclick="openMessages()">Messages</button>
+							</li>
+						</ul>
+						
+						<div class="bg-white px-3 py-2 border-start border-bottom border-end" id="map-container">
+							<p id="no-players-message">There are no active players at right now.</p>
+
+							<div class="bg-success" id="map"  style="height: 500px;"></div>                
+						</div>
+						
+						<div class="bg-white px-3 py-2 border-start border-bottom border-end" id="messages-container" style="display: none;">
 							<div class="row">
 
-								<div class="col-md-5 col-lg-4 pe-0">
+								<div class="col-md-5 col-lg-4 p-0">
 									<div class="ps-3 text-start h-100 rounded-start" style="background-color:#5BA6A2">
-										<p class="pt-2 mb-2 text-white">Active users (5)</p>
+										<p class="pt-2 mb-2 text-white">Active users <span id="chat-users-number"></span></p>
 										
-										<div class="ms-2 me-5" id="chat-users">
-											<button type="button" class="btn btn-green mb-1 py-1 text-start w-100">User</button>
-											<button type="button" class="btn btn-green mb-1 py-1 text-start w-100">User</button>
-											<button type="button" class="btn btn-green mb-1 py-1 text-start w-100">User</button>
-										</div>
-									</div>									
+										<div class="ms-2 me-5" id="chat-users"></div>
+									</div>
 								</div>
 								
-								<div class="col-md-7 col-lg-8 ps-0" style="height: 500px;">
+								<div class="col-md-7 col-lg-8 p-0" style="height: 500px; display: none;">
 									<div class="text-start">
-										<p class="m-0 py-2 ps-4" style="background-color: #dfdfdf;">User</p>
+										<p class="m-0 py-2 ps-4" style="background-color: #dfdfdf;"></p>
 									</div>
+									
 									<hr class="m-0">
 									<ul class="py-2 ps-3 m-0 bg-white h-100" id="messages-list">
 										<li class="mb-2 text-start">
@@ -57,7 +61,7 @@
 										</li>
 										<li class="mb-2 text-start">
 											<p class="message d-inline-block rounded p-2 m-0">An item</p>
-										</li>																
+										</li>                                                
 									</ul>
 									
 									<div class="d-flex align-items-center justify-content-center py-2" style="background-color: #dfdfdf;">
