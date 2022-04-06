@@ -711,6 +711,7 @@ function openMessages(){
 
 function findActiveUsers(){
 	var huntID = document.querySelector('#hunt-name').innerHTML;
+	var trackingMessages = false;
 	
 	db.collection("hunts").doc(huntID).get().then((huntInfo) =>{
 		document.getElementById('hunt-name').innerHTML= huntInfo.get('name');
@@ -725,6 +726,12 @@ function findActiveUsers(){
 			document.getElementById('no-players-message').style.display = "none";
 			document.getElementById('map').style.display = "block";
 			document.getElementById('messages-toggle').disabled = false;
+			
+			//Track messages
+			if(!trackingMessages){
+				trackMessages(huntID);
+				trackingMessages = true;
+			}
 		}
 	});
 	
@@ -774,9 +781,12 @@ function findActiveUsers(){
 		console.log("huntRef() child removed: " + data.key);
 		usersLocs[data.key].setMap(null);
 		delete usersLocs[data.key];
+		
+		//Remove user chat button
+		document.getElementById('button-' + data.key + '-' + huntID).remove();
 	});
 	
-	trackMessages(huntID);
+	
 	
 	var databaseRef = firebase.database().ref(huntID);
 	databaseRef.on('child_removed', (data) => {
@@ -1067,6 +1077,24 @@ $(document).ready(function() {
 		}		
 		
 		messageInput.value = "";
+		
+		e.preventDefault();
+	});
+});
+
+$(document).ready(function() {
+    $(document).on('submit', '#send-to-all-form', function(e) {
+		var message = document.getElementById("message-to-all-input").value;
+		console.log(message);
+		
+		if(message !== ""){
+			const msg = {
+				name: "Admin",
+				text: message
+			};
+			
+			huntMessagesRef.push(msg);
+		}	
 		
 		e.preventDefault();
 	});

@@ -16,7 +16,7 @@
 						</div>
 					</nav>
 
-					<main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+					<main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">						
 						<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
 							<h1 class="h3" id="hunt-name"><?= esc($huntId) ?></h1>
 						</div>
@@ -36,20 +36,27 @@
 							</li>
 						</ul>
 						
-						<div class="bg-white px-3 py-2 border-start border-bottom border-end" id="map-container">
+						<div class="bg-white px-3 py-2 mb-4 border-start border-bottom border-end" id="map-container">
 							<p id="no-players-message">There are no active players at right now.</p>
 
 							<div class="bg-success" id="map"  style="height: 500px;"></div>                
 						</div>
 						
-						<div class="bg-white px-3 py-2 border-start border-bottom border-end" id="messages-container" style="display: none;">
+						<div class="bg-white px-3 py-2 mb-4 border-start border-bottom border-end" id="messages-container" style="display: none;">
 							<div class="row">
 
 								<div class="col-md-5 col-lg-4 p-0">
-									<div class="ps-3 text-start h-100 rounded-start" style="background-color:#5BA6A2">
-										<p class="pt-2 mb-2 text-white">Active users</p>
+									<div class="text-start h-100 rounded-start" style="background-color:#5BA6A2">
+										<p class="ps-3 pt-2 mb-2 text-white">Active users</p>
 										
-										<div class="ms-2 me-5" id="chat-users"></div>
+										<div class="ms-2 me-5 ps-3" id="chat-users"></div>
+										
+										<div class="my-2 text-center">
+											<button type="button" class="btn btn-outline-light" data-bs-toggle="modal" data-bs-target="#message-to-all">
+												Message to all
+											</button>
+										</div>
+										
 									</div>
 								</div>
 								
@@ -79,6 +86,30 @@
 						</div>
 						
 					</main>
+				</div>
+			</div>
+		</div>
+		
+		<div class="modal fade" id="message-to-all" tabindex="-1" aria-hidden="true">
+			<div class="modal-dialog">
+				<div class="modal-content">
+				
+					<div class="modal-header">
+						<h5 class="modal-title">Message to all users</h5>
+						<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+					</div>
+					
+					<div class="modal-body">
+						<form id="send-to-all-form">
+							<input type="text" class="form-control" id="message-to-all-input" placeholder="Your message">
+							
+							<div class="mt-2 text-end">
+								<label for="message-to-all-button" class="btn btn-green"><i class="bi bi-send"> Send to all</i></label>
+								<input class="visually-hidden" id="message-to-all-button" type="submit" value="" data-bs-dismiss="modal"/>
+							</div>
+						</form>
+					</div>
+					
 				</div>
 			</div>
 		</div>
