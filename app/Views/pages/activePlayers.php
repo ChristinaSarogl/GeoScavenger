@@ -76,7 +76,7 @@
 											</div>
 											<div class="col-auto">
 												<label for="chat-message-submit" class="btn btn-green"><i class="bi bi-send"> Send</i></label>
-												<input class="visually-hidden" id="chat-message-submit" type="submit" value="" form="message-form"/>
+												<input class="visually-hidden" id="chat-message-submit" type="submit" value=""/>
 											</div>										
 										</div>
 									</form>
@@ -114,7 +114,7 @@
 			</div>
 		</div>
 		
-		<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 100">
+		<div class="position-fixed bottom-0 start-0 p-3" style="z-index: 100">
 			<div id="message-to-all-toast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
 				<div class="toast-header">
 					<strong class="me-auto">GeoScavenger</strong>

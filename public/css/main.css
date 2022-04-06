@@ -112,14 +112,14 @@ a{
 }
 
 #messages-list{
-    max-height: 439px;
+    max-height: 405px;
     list-style-type: none;
     overflow: hidden;
     overflow-y: scroll;
 }
 
 #chat-users{
-    max-height: 440px;
+    max-height: 405px;
     overflow: hidden;
     overflow-y: scroll;
 
