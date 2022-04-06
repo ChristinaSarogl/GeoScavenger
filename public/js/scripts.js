@@ -23,7 +23,8 @@ var markerExists = false;
 var mapView;
 var usersLocs = {};
 var activeInfoWindow = null;
-var messagesRef;
+var huntMessagesRef;
+var sendMessagesRef;
 
 //Listen for auth changes
 auth.onAuthStateChanged(user => {
@@ -691,16 +692,21 @@ function openMap(){
 	document.getElementById('map-container').style.display = "block";
 	document.getElementById('messages-container').style.display = "none";
 
-	document.getElementById('map-toggle').setAttribute('class','nav-link active');
-	document.getElementById('messages-toggle').setAttribute('class','nav-link link-dark');
+	document.getElementById('map-toggle').setAttribute('class','nav-link active me-1');
+	document.getElementById('map-toggle').style.backgroundColor = null;
+	document.getElementById('messages-toggle').setAttribute('class','nav-link link-dark position-relative');
+	document.getElementById('messages-toggle').style.backgroundColor = "#cf9a5e1f";
 }
 
 function openMessages(){
 	document.getElementById('map-container').style.display = "none";
 	document.getElementById('messages-container').style.display = "block";
 
-	document.getElementById('messages-toggle').setAttribute('class','nav-link active');
-	document.getElementById('map-toggle').setAttribute('class','nav-link link-dark');
+	document.getElementById('messages-toggle').setAttribute('class','nav-link position-relative active');
+	document.getElementById('messages-toggle').style.backgroundColor = null;
+	document.getElementById('messages-notification').style.display = "none";
+	document.getElementById('map-toggle').setAttribute('class','nav-link link-dark me-1');
+	document.getElementById('map-toggle').style.backgroundColor = "#cf9a5e1f";
 }
 
 function findActiveUsers(){
@@ -731,11 +737,11 @@ function findActiveUsers(){
 		//Add user to chat
 		var chatUsers = document.getElementById('chat-users');
 		var newUser = document.createElement('button');
-		newUser.setAttribute('type','button');
 		newUser.setAttribute('class','btn btn-green mb-1 py-1 text-start w-100');	
-		newUser.setAttribute('id', 'button-' + data.key);
+		newUser.setAttribute('id', 'button-' + data.key + '-' + huntID);
 		newUser.setAttribute('onclick', "loadMessages('" + huntID + "','" + name + "','" + data.key + "')");
 		newUser.innerHTML = name;
+		
 		chatUsers.append(newUser);
 		
 		if (data.val()["location"] !== undefined){
@@ -770,9 +776,10 @@ function findActiveUsers(){
 		delete usersLocs[data.key];
 	});
 	
+	trackMessages(huntID);
+	
 	var databaseRef = firebase.database().ref(huntID);
 	databaseRef.on('child_removed', (data) => {
-		console.log(data);
 		if (data.key === "players"){			
 			console.log("huntRef() child removed: " + data.key);
 			document.getElementById('no-players-message').style.display = "block";
@@ -780,6 +787,8 @@ function findActiveUsers(){
 			document.getElementById('messages-toggle').disabled = true;
 			document.getElementById('chat-users').innerHTML = "";
 			document.getElementById('chat-container').style.display = "none";
+			document.getElementById('chat-username').innerHTML = "";			
+			
 			openMap();
 		}
 	});	
@@ -871,40 +880,176 @@ function deleteDangerAlert(userId){
 	}
 }
 
-function loadMessages(huntID, username, userID){
-	var messageList = document.getElementById('messages-list');
-	messageList.innerHTML = "";
+function trackMessages(huntID){
+	huntMessagesRef = firebase.database().ref(huntID + '/messages/');
 	
-	messagesRef = firebase.database().ref(huntID + '/messages/' + userID);
-	
-	messagesRef.on('child_added', (data) => {
-		var message = data.val()["text"];
+	huntMessagesRef.on('child_added', (data) => {
+		console.log("huntMessagesRef() added: ");
+		console.log(data.val());
 		
-		var messageWrapper = document.createElement('li');
-		messageWrapper.setAttribute('class','mb-2 text-start');
+		var messageTab = document.getElementById('messages-toggle').className;
 		
-		var messageText = document.createElement('p');
-		messageText.setAttribute('class','message d-inline-block rounded p-2 m-0');
-		messageText.innerHTML = message;
+		if(messageTab != "nav-link position-relative active"){
+			document.getElementById('messages-notification').style.display = "block";
+		} 
 		
-		var sender = document.createElement('small');
-		sender.setAttribute('class','d-block text-secondary');
-		sender.innerHTML = data.val()["name"];
-		
-		messageWrapper.append(messageText);		
-		messageWrapper.append(sender);		
-		messageList.append(messageWrapper);
+		console.log("element: " + document.getElementById('chat-username').innerHTML);
+		var chatTitleSpan = document.getElementById('chat-username').getElementsByTagName('span');
 
-		const scrollToBottom = (node) => {
-			node.scrollTop = node.scrollHeight;
-		}
-
-		scrollToBottom(document.getElementById("messages-list"));		
+		if(chatTitleSpan[0] === undefined){
+			var userButton = document.getElementById('button-' + data.key + '-' + huntID);
+			console.log("Button: " + userButton);
+			
+			var badge = document.createElement('span');
+			badge.setAttribute('class','badge bg-danger ms-2');
+			badge.setAttribute('id','span-' + data.key);
+			badge.innerHTML = 1;
+			
+			userButton.append(badge);
+		} else {
+			var titleUserID = chatTitleSpan[0].id.split('-');
+			
+			if(titleUserID[2] !== data.key){
+				var userButton = document.getElementById('button-' + data.key + '-' + huntID);
+				console.log("Button: " + userButton);
+			
+				var badge = document.createElement('span');
+				badge.setAttribute('class','badge bg-danger ms-2');
+				badge.setAttribute('id','span-' + data.key);
+				badge.innerHTML = 1;
+				
+				userButton.append(badge);
+			} else {
+				var messageInfo = data.val()[Object.keys(data.val())[0]];
+				addMessageToChat(messageInfo);
+			}
+		}		
 		
 	});
 	
-	document.getElementById('chat-username').innerHTML = username;
-	document.getElementById('chat-container').style.display = "block";		
+	huntMessagesRef.on('child_changed', (data) => {
+		console.log("huntMessagesRef() updated: ");		
+		console.log(data.val());
+		
+		var messageTab = document.getElementById('messages-toggle').className;
+		
+		if(messageTab != "nav-link position-relative active"){
+			document.getElementById('messages-notification').style.display = "block";
+		}
+		
+		console.log("element: " + document.getElementById('chat-username').innerHTML);
+		var chatTitleSpan = document.getElementById('chat-username').getElementsByTagName('span');
+		var userBadge = document.getElementById('span-' + data.key);
+		console.log(userBadge);
+
+		if(chatTitleSpan[0] === undefined){
+			if(userBadge !== null){
+				var number = userBadge.innerHTML;				
+				number++;
+				
+				userBadge.innerHTML = number;
+				
+			} else {
+				var userButton = document.getElementById('button-' + data.key + '-' + huntID);
+				console.log("Button: " + userButton);
+				
+				var badge = document.createElement('span');
+				badge.setAttribute('class','badge bg-danger ms-2');
+				badge.setAttribute('id','span-' + data.key);
+				badge.innerHTML = 1;
+				
+				userButton.append(badge);
+			}
+			
+		} else {
+			var titleUserID = chatTitleSpan[0].id.split('-');
+			
+			if(titleUserID[2] !== data.key){
+				if(userBadge !== null){
+					var number = userBadge.innerHTML;				
+					number++;
+					
+					userBadge.innerHTML = number;
+					
+				} else {
+					var userButton = document.getElementById('button-' + data.key + '-' + huntID);
+					console.log("Button: " + userButton);
+					
+					var badge = document.createElement('span');
+					badge.setAttribute('class','badge bg-danger ms-2');
+					badge.setAttribute('id','span-' + data.key);
+					badge.innerHTML = 1;
+					
+					userButton.append(badge);
+			}
+			} else {
+				var messageInfo = data.val()[Object.keys(data.val())[Object.keys(data.val()).length - 1]];
+				addMessageToChat(messageInfo);
+			}
+		}	
+		
+	});
+}
+
+function loadMessages(huntID, username, userID){	
+	var messageList = document.getElementById('messages-list');
+	messageList.innerHTML = "";
+	
+	//Remove badge
+	var userBadge = document.getElementById('span-' + userID);
+	console.log(userBadge);
+	if(userBadge !== null){
+		userBadge.remove();
+	}	
+	
+	sendMessagesRef = firebase.database().ref(huntID + "/messages/" + userID);
+	
+	firebase.database().ref().child(huntID).child("messages").child(userID).get().then((snapshot) => {
+		if (snapshot.exists()) {
+			console.log(snapshot.val());
+			var messages = snapshot.val();
+			
+			for(let key in messages){
+				var messageInfo = messages[key];
+				addMessageToChat(messageInfo);				
+			}
+			
+		} else {
+			console.log("No data available");
+		}
+	}).catch((error) => {
+		console.error(error);
+	});
+	
+	document.getElementById('chat-username').innerHTML = "<span id='chat-username-" + userID + "'>" + username + "</span>";
+	document.getElementById('chat-container').style.display = "block";
+}
+
+function addMessageToChat(messageInfo){
+	var messageList = document.getElementById('messages-list');
+	
+	var message = messageInfo["text"];
+
+	var messageWrapper = document.createElement('li');
+	messageWrapper.setAttribute('class','mb-2 text-start');
+	
+	var messageText = document.createElement('p');
+	messageText.setAttribute('class','message d-inline-block rounded p-2 m-0');
+	messageText.innerHTML = message;
+	
+	var sender = document.createElement('small');
+	sender.setAttribute('class','d-block text-secondary');
+	sender.innerHTML = messageInfo["name"];
+	
+	messageWrapper.append(messageText);		
+	messageWrapper.append(sender);		
+	messageList.append(messageWrapper);
+
+	const scrollToBottom = (node) => {
+		node.scrollTop = node.scrollHeight;
+	}
+
+	scrollToBottom(messageList);
 }
 
 $(document).ready(function() {
@@ -918,7 +1063,7 @@ $(document).ready(function() {
 				text: message
 			};
 			
-			messagesRef.push(msg);
+			sendMessagesRef.push(msg);
 		}		
 		
 		messageInput.value = "";
@@ -926,4 +1071,3 @@ $(document).ready(function() {
 		e.preventDefault();
 	});
 });
-

@@ -25,10 +25,14 @@
 						
 						<ul class="nav nav-tabs">
 							<li class="nav-item">
-								<button class="nav-link active" id="map-toggle" onclick="openMap()">Map</button>
+								<button class="nav-link active me-1" id="map-toggle" onclick="openMap()">Map</button>
 							</li>
 							<li class="nav-item">
-								<button class="nav-link link-dark" id="messages-toggle" onclick="openMessages()">Messages</button>
+								<button class="nav-link link-dark position-relative" id="messages-toggle" onclick="openMessages()" style="background-color:#cf9a5e1f;">
+									Hunt Messages
+									<span class="position-absolute top-0 start-100 translate-middle p-2 bg-danger border border-light rounded-circle"
+										id="messages-notification" style="display: none;"></span>
+								</button>
 							</li>
 						</ul>
 						
@@ -64,7 +68,8 @@
 												<input type="text" class="form-control" id="chat-message-input">
 											</div>
 											<div class="col-auto">
-												<input class="btn btn-green" type="submit" value="Send" form="message-form"/>
+												<label for="chat-message-submit" class="btn btn-green"><i class="bi bi-send"> Send</i></label>
+												<input class="visually-hidden" id="chat-message-submit" type="submit" value="" form="message-form"/>
 											</div>										
 										</div>
 									</form>
