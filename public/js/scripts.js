@@ -779,6 +779,7 @@ function findActiveUsers(){
 	 
 	huntRef.on('child_removed',(data) => {
 		console.log("huntRef() child removed: " + data.key);
+		//Remove marker on map
 		usersLocs[data.key].setMap(null);
 		delete usersLocs[data.key];
 		
@@ -790,7 +791,11 @@ function findActiveUsers(){
 	
 	var databaseRef = firebase.database().ref(huntID);
 	databaseRef.on('child_removed', (data) => {
-		if (data.key === "players"){			
+		if (data.key === "players"){	
+			//Remove all mass messages sent by the administrator
+			databaseRef.child('messages').remove();
+			
+			//Reset UI
 			console.log("huntRef() child removed: " + data.key);
 			document.getElementById('no-players-message').style.display = "block";
 			document.getElementById('map').style.display = "none";
@@ -1094,6 +1099,8 @@ $(document).ready(function() {
 			};
 			
 			huntMessagesRef.push(msg);
+			var toast = new bootstrap.Toast(document.getElementById('message-to-all-toast'));
+			toast.show();
 		}	
 		
 		e.preventDefault();
