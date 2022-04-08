@@ -746,7 +746,7 @@ function findActiveUsers(){
 		var newUser = document.createElement('button');
 		newUser.setAttribute('class','btn btn-green mb-1 py-1 text-start w-100');	
 		newUser.setAttribute('id', 'button-' + data.key + '-' + huntID);
-		newUser.setAttribute('onclick', "loadMessages('" + huntID + "','" + name + "','" + data.key + "'," + false + ")");
+		newUser.setAttribute('onclick', "loadMessages('" + huntID + "','" + name + "','" + data.key + "'," + false + "," + null + ")");
 		newUser.innerHTML = name;
 		
 		chatUsers.append(newUser);
@@ -762,11 +762,15 @@ function findActiveUsers(){
 			if (data.val()["disconnected"]){
 				document.getElementById('button-' + data.key + '-' + huntID).style.backgroundColor = "grey";
 				document.getElementById('button-' + data.key + '-' + huntID).setAttribute('onclick', 
-					"loadMessages('" + huntID + "','" + name + "','" + data.key + "'," + true + ")");
+					"loadMessages('" + huntID + "','" + name + "','" + data.key + "'," + true + ",'" + data.val()["last_online"] + "')");
+					
+					document.getElementById('chat-remove-dropdown').style.display = "inline-block";
 			} else {
 				document.getElementById('button-' + data.key + '-' + huntID).style.backgroundColor = null;
 				document.getElementById('button-' + data.key + '-' + huntID).setAttribute('onclick', 
-					"loadMessages('" + huntID + "','" + name + "','" + data.key + "'," + false + ")");
+					"loadMessages('" + huntID + "','" + name + "','" + data.key + "'," + false + "," + null + ")");
+					
+					document.getElementById('chat-remove-dropdown').style.display = "none";
 			}
 		}
 	});
@@ -790,20 +794,28 @@ function findActiveUsers(){
 			if (data.val()["disconnected"]){
 				document.getElementById('button-' + data.key + '-' + huntID).style.backgroundColor = "grey";
 				document.getElementById('button-' + data.key + '-' + huntID).setAttribute('onclick', 
-					"loadMessages('" + huntID + "','" + name + "','" + data.key + "'," + true + ")");
+					"loadMessages('" + huntID + "','" + name + "','" + data.key + "'," + true + ",'" + data.val()["last_online"] + "')");
 					
 				if(document.getElementById('chat-active-dot-' + data.key) != null){
 					document.getElementById('chat-active-dot-' + data.key).setAttribute('class','bg-danger active-dot');
 				}
 				
+				document.getElementById('chat-last-online').style.display = "inline-block";
+				document.getElementById('chat-last-online').innerHTML = "Last online: " + data.val()["last_online"];
+				
+				document.getElementById('chat-remove-dropdown').style.display = "inline-block";
+				
 			} else {
 				document.getElementById('button-' + data.key + '-' + huntID).style.backgroundColor = null;
 				document.getElementById('button-' + data.key + '-' + huntID).setAttribute('onclick', 
-					"loadMessages('" + huntID + "','" + name + "','" + data.key + "'," + false + ")");
+					"loadMessages('" + huntID + "','" + name + "','" + data.key + "'," + false + "," + null + ")");
 					
 				if(document.getElementById('chat-active-dot-' + data.key) != null){
 					document.getElementById('chat-active-dot-' + data.key).setAttribute('class','bg-success active-dot');
 				}
+				
+				document.getElementById('chat-last-online').style.display = "none";
+				document.getElementById('chat-remove-dropdown').style.display = "none";
 			}
 		}	
 		
@@ -1057,7 +1069,7 @@ function trackMessages(huntID){
 	});
 }
 
-function loadMessages(huntID, username, userID, disconnected){	
+function loadMessages(huntID, username, userID, disconnected, lastOnline){	
 	var messageList = document.getElementById('messages-list');
 	messageList.innerHTML = "";
 	
@@ -1091,8 +1103,11 @@ function loadMessages(huntID, username, userID, disconnected){
 	
 	if(disconnected){
 		activeDot = "<span class='bg-danger active-dot' id='chat-active-dot-" + userID + "'></span>";
+		document.getElementById('chat-last-online').style.display = "inline-block";
+		document.getElementById('chat-last-online').innerHTML = "Last online: " + lastOnline;
 	} else {
 		activeDot = "<span class='bg-success active-dot' id='chat-active-dot-" + userID + "'></span>";
+		document.getElementById('chat-last-online').style.display = "none";
 	}
 	
 	document.getElementById('chat-title').innerHTML = activeDot + "<span class='ps-2' id='chat-username-" + userID + "'>" + username + "</span>";	

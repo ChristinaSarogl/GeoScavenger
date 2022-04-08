@@ -61,9 +61,19 @@
 								</div>
 								
 								<div class="col-md-7 col-lg-8 p-0" id="chat-container" style="height: 500px; display: none;">
-									<div class="text-start">
-										<p class="m-0 py-2 ps-3" id ="chat-title" style="background-color: #dfdfdf;">
-										</p>
+									<div class="d-flex align-items-center justify-content-between" style="background-color: #dfdfdf;">
+										<p class="m-0 py-2 ps-3" id ="chat-title"></p>
+										
+										<div class="dropdown">
+										<small class="text-secondary" id="chat-last-online">Last online: </small>
+											<button class="btn btn-outline-secondary btn-sm me-2" type="button" id="chat-remove-dropdown"
+												data-bs-toggle="dropdown" aria-expanded="false">
+												<i class="bi bi-three-dots-vertical"></i>
+											</button>
+											<ul class="dropdown-menu" aria-labelledby="chat-remove-dropdown">
+												<li><a class="dropdown-item" href="#">Remove User</a></li>
+											</ul>
+										</div>
 									</div>
 									
 									<hr class="m-0">
