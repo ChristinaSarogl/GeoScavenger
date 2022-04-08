@@ -62,7 +62,8 @@
 								
 								<div class="col-md-7 col-lg-8 p-0" id="chat-container" style="height: 500px; display: none;">
 									<div class="text-start">
-										<p class="m-0 py-2 ps-4" id="chat-username" style="background-color: #dfdfdf;"></p>
+										<p class="m-0 py-2 ps-3" id ="chat-title" style="background-color: #dfdfdf;">
+										</p>
 									</div>
 									
 									<hr class="m-0">

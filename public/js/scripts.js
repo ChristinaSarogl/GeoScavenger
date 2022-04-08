@@ -740,14 +740,13 @@ function findActiveUsers(){
 		console.log("huntRef() added child: " + data.key);
 		console.log(data.val());
 		var name = Object.values(data.val()["name"]).join('');
-		console.log(data.val()["location"]);
 		
 		//Add user to chat
 		var chatUsers = document.getElementById('chat-users');
 		var newUser = document.createElement('button');
 		newUser.setAttribute('class','btn btn-green mb-1 py-1 text-start w-100');	
 		newUser.setAttribute('id', 'button-' + data.key + '-' + huntID);
-		newUser.setAttribute('onclick', "loadMessages('" + huntID + "','" + name + "','" + data.key + "')");
+		newUser.setAttribute('onclick', "loadMessages('" + huntID + "','" + name + "','" + data.key + "'," + false + ")");
 		newUser.innerHTML = name;
 		
 		chatUsers.append(newUser);
@@ -759,22 +758,58 @@ function findActiveUsers(){
 			}
 		}
 		
+		if (data.val()["disconnected"] !== undefined){
+			if (data.val()["disconnected"]){
+				document.getElementById('button-' + data.key + '-' + huntID).style.backgroundColor = "grey";
+				document.getElementById('button-' + data.key + '-' + huntID).setAttribute('onclick', 
+					"loadMessages('" + huntID + "','" + name + "','" + data.key + "'," + true + ")");
+			} else {
+				document.getElementById('button-' + data.key + '-' + huntID).style.backgroundColor = null;
+				document.getElementById('button-' + data.key + '-' + huntID).setAttribute('onclick', 
+					"loadMessages('" + huntID + "','" + name + "','" + data.key + "'," + false + ")");
+			}
+		}
 	});
 	
 	huntRef.on('child_changed', (data) => {
 		console.log("huntRef() changed: " + data.key);
+		console.log(data.val());
 		
 		if(data.val()["HELP"] !== undefined){
-			var coordinates = Object.values(data.val())[1];
-			var name = Object.values(data.val())[2];
+			var coordinates = Object.values(data.val())[2];
+			var name = Object.values(data.val())[3];
 			displayUserDanger(data.key, name, coordinates.latitude, coordinates.longitude);
 		} else {
 			//Check if there is a danger alert for this user
 			deleteDangerAlert(data.key);
-			var coordinates = Object.values(data.val())[0];
-			var name = Object.values(data.val())[1];
+			var coordinates = Object.values(data.val())[1];
+			var name = Object.values(data.val())[2];
 		}
-		updateUserLocation(data.key, name, coordinates.latitude, coordinates.longitude);
+		
+		if(data.val()["disconnected"] !== undefined){
+			if (data.val()["disconnected"]){
+				document.getElementById('button-' + data.key + '-' + huntID).style.backgroundColor = "grey";
+				document.getElementById('button-' + data.key + '-' + huntID).setAttribute('onclick', 
+					"loadMessages('" + huntID + "','" + name + "','" + data.key + "'," + true + ")");
+					
+				if(document.getElementById('chat-active-dot-' + data.key) != null){
+					document.getElementById('chat-active-dot-' + data.key).setAttribute('class','bg-danger active-dot');
+				}
+				
+			} else {
+				document.getElementById('button-' + data.key + '-' + huntID).style.backgroundColor = null;
+				document.getElementById('button-' + data.key + '-' + huntID).setAttribute('onclick', 
+					"loadMessages('" + huntID + "','" + name + "','" + data.key + "'," + false + ")");
+					
+				if(document.getElementById('chat-active-dot-' + data.key) != null){
+					document.getElementById('chat-active-dot-' + data.key).setAttribute('class','bg-success active-dot');
+				}
+			}
+		}	
+		
+		if(data.val()["location"] !== undefined){
+			updateUserLocation(data.key, name, coordinates.latitude, coordinates.longitude);
+		}
 		
 	});
 	 
@@ -803,7 +838,7 @@ function findActiveUsers(){
 			document.getElementById('messages-toggle').disabled = true;
 			document.getElementById('chat-users').innerHTML = "";
 			document.getElementById('chat-container').style.display = "none";
-			document.getElementById('chat-username').innerHTML = "";			
+			document.getElementById('chat-title').innerHTML = "";			
 			
 			openMap();
 		}
@@ -911,10 +946,11 @@ function trackMessages(huntID){
 			document.getElementById('messages-notification').style.display = "block";
 		} 
 		
-		console.log("element: " + document.getElementById('chat-username').innerHTML);
-		var chatTitleSpan = document.getElementById('chat-username').getElementsByTagName('span');
+		console.log("element: " + document.getElementById('chat-title').innerHTML);
+		var chatTitleSpan = document.getElementById('chat-title').getElementsByTagName('span');
+		console.log(chatTitleSpan[1]);
 
-		if(chatTitleSpan[0] === undefined){
+		if(chatTitleSpan[1] === undefined){
 			if(messageInfo['type'] == 'personal'){
 				var userButton = document.getElementById('button-' + data.key + '-' + huntID);
 				console.log("Button: " + userButton);
@@ -927,7 +963,7 @@ function trackMessages(huntID){
 				userButton.append(badge);
 			}
 		} else {
-			var titleUserID = chatTitleSpan[0].id.split('-');
+			var titleUserID = chatTitleSpan[1].id.split('-');
 			
 			if(titleUserID[2] !== data.key){
 				if(messageInfo['type'] == 'personal'){
@@ -960,12 +996,14 @@ function trackMessages(huntID){
 			document.getElementById('messages-notification').style.display = "block";
 		}
 		
-		console.log("element: " + document.getElementById('chat-username').innerHTML);
-		var chatTitleSpan = document.getElementById('chat-username').getElementsByTagName('span');
+		console.log("element: " + document.getElementById('chat-title').innerHTML);
+		var chatTitleSpan = document.getElementById('chat-title').getElementsByTagName('span');
 		var userBadge = document.getElementById('span-' + data.key);
 		console.log(userBadge);
+		console.log(chatTitleSpan);
+		console.log(chatTitleSpan[1]);
 
-		if(chatTitleSpan[0] === undefined){
+		if(chatTitleSpan[1] === undefined){
 			if(messageInfo['type'] == 'personal'){
 				if(userBadge !== null){
 					var number = userBadge.innerHTML;				
@@ -988,7 +1026,8 @@ function trackMessages(huntID){
 			}
 			
 		} else {
-			var titleUserID = chatTitleSpan[0].id.split('-');
+			var titleUserID = chatTitleSpan[1].id.split('-');
+			console.log(titleUserID);
 			
 			if(titleUserID[2] !== data.key){
 				if(messageInfo['type'] == 'personal'){
@@ -1018,7 +1057,7 @@ function trackMessages(huntID){
 	});
 }
 
-function loadMessages(huntID, username, userID){	
+function loadMessages(huntID, username, userID, disconnected){	
 	var messageList = document.getElementById('messages-list');
 	messageList.innerHTML = "";
 	
@@ -1048,7 +1087,15 @@ function loadMessages(huntID, username, userID){
 		console.error(error);
 	});
 	
-	document.getElementById('chat-username').innerHTML = "<span id='chat-username-" + userID + "'>" + username + "</span>";
+	var activeDot;
+	
+	if(disconnected){
+		activeDot = "<span class='bg-danger active-dot' id='chat-active-dot-" + userID + "'></span>";
+	} else {
+		activeDot = "<span class='bg-success active-dot' id='chat-active-dot-" + userID + "'></span>";
+	}
+	
+	document.getElementById('chat-title').innerHTML = activeDot + "<span class='ps-2' id='chat-username-" + userID + "'>" + username + "</span>";	
 	document.getElementById('chat-container').style.display = "block";
 }
 
