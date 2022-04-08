@@ -71,7 +71,7 @@
 												<i class="bi bi-three-dots-vertical"></i>
 											</button>
 											<ul class="dropdown-menu" aria-labelledby="chat-remove-dropdown">
-												<li><a class="dropdown-item" href="#">Remove User</a></li>
+												<li><button class="dropdown-item" id="chat-remove-button">Remove User</button></li>
 											</ul>
 										</div>
 									</div>
@@ -125,15 +125,39 @@
 			</div>
 		</div>
 		
-		<div class="position-fixed bottom-0 start-0 p-3" style="z-index: 100">
-			<div id="message-to-all-toast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
-				<div class="toast-header">
-					<strong class="me-auto">GeoScavenger</strong>
-					<button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+		<div aria-live="polite" aria-atomic="true" class="position-relative">
+			<div class="toast-container fixed-bottom p-3" style="z-index: 100">
+		  
+				<div id="message-to-all-toast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+					<div class="toast-header">
+						<strong class="me-auto">GeoScavenger</strong>
+						<button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+					</div>
+					<div class="toast-body">
+						The message was sent to all users.
+					</div>
 				</div>
-				<div class="toast-body">
-					The message was sent to all the users.
+				
+				<div id="unable-to-delete-toast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+					<div class="toast-header">
+						<strong class="me-auto">GeoScavenger</strong>
+						<button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+					</div>
+					<div class="toast-body">
+						The user have to be offline for at least 1 day, to remove them from the hunt.
+					</div>
 				</div>
+				
+				<div id="deleted-user-toast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+					<div class="toast-header">
+						<strong class="me-auto">GeoScavenger</strong>
+						<button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+					</div>
+					<div class="toast-body">
+						User was removed from the hunt.
+					</div>
+				</div>
+			
 			</div>
 		</div>
 	

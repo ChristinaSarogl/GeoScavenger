@@ -765,6 +765,7 @@ function findActiveUsers(){
 					"loadMessages('" + huntID + "','" + name + "','" + data.key + "'," + true + ",'" + data.val()["last_online"] + "')");
 					
 					document.getElementById('chat-remove-dropdown').style.display = "inline-block";
+					document.getElementById('chat-remove-button').setAttribute('onclick','removeUser("' + huntID + '","' + data.key + '")');					
 			} else {
 				document.getElementById('button-' + data.key + '-' + huntID).style.backgroundColor = null;
 				document.getElementById('button-' + data.key + '-' + huntID).setAttribute('onclick', 
@@ -804,6 +805,7 @@ function findActiveUsers(){
 				document.getElementById('chat-last-online').innerHTML = "Last online: " + data.val()["last_online"];
 				
 				document.getElementById('chat-remove-dropdown').style.display = "inline-block";
+				document.getElementById('chat-remove-button').setAttribute('onclick','removeUser("' + huntID + '","' + data.key + '")');
 				
 			} else {
 				document.getElementById('button-' + data.key + '-' + huntID).style.backgroundColor = null;
@@ -941,6 +943,57 @@ function deleteDangerAlert(userId){
 	if(document.getElementById(userId) != null){
 		document.getElementById(userId).remove();
 	}
+}
+
+function removeUser(huntId, userId){
+	console.log(userId);
+	
+	const huntPlayerRef = firebase.database().ref(huntId + '/players').child(userId).get().then((snapshot) => {
+		if (snapshot.exists()) {
+			console.log(snapshot.val());
+		
+			var lastConnected = snapshot.val()["last_online"];			
+			var split = lastConnected.split(' ');
+			
+			var dateConnected = split[0].split('-');			
+			var timeConnected = split[1].split(':');
+			
+			var onlineDate = new Date(dateConnected[0],dateConnected[1]-1,dateConnected[2],timeConnected[0],timeConnected[1],'00');
+			
+			var safeToDelete = false;
+			
+			if(onlineDate.getFullYear() == new Date().getFullYear()){
+				if(onlineDate.getMonth() == new Date().getMonth()){
+					if(onlineDate.getDate() != new Date().getDate()){
+						safeToDelete = true;
+					}
+				} else{
+					safeToDelete = true;
+				}
+			} else {
+				safeToDelete = true;
+			}
+			
+			if(!safeToDelete){
+				var toast = new bootstrap.Toast(document.getElementById('unable-to-delete-toast'));
+				toast.show();
+			} else {
+				firebase.database().ref(huntId + '/players').child(userId).remove();
+				firebase.database().ref(huntId + '/messages').child(userId).remove();	
+
+				var toast = new bootstrap.Toast(document.getElementById('deleted-user-toast'));
+				toast.show();
+				
+			}
+			
+			console.log(safeToDelete);
+		
+		} else {
+			console.log("No data available");
+		}
+	}).catch((error) => {
+		console.error(error);
+	});
 }
 
 function trackMessages(huntID){
@@ -1103,11 +1156,17 @@ function loadMessages(huntID, username, userID, disconnected, lastOnline){
 	
 	if(disconnected){
 		activeDot = "<span class='bg-danger active-dot' id='chat-active-dot-" + userID + "'></span>";
+		
 		document.getElementById('chat-last-online').style.display = "inline-block";
 		document.getElementById('chat-last-online').innerHTML = "Last online: " + lastOnline;
+		
+		document.getElementById('chat-remove-dropdown').style.display = "inline-block";
+		document.getElementById('chat-remove-button').setAttribute('onclick','removeUser("' + huntID + '","' + userID + '")');
 	} else {
 		activeDot = "<span class='bg-success active-dot' id='chat-active-dot-" + userID + "'></span>";
+		
 		document.getElementById('chat-last-online').style.display = "none";
+		document.getElementById('chat-remove-dropdown').style.display = "none";
 	}
 	
 	document.getElementById('chat-title').innerHTML = activeDot + "<span class='ps-2' id='chat-username-" + userID + "'>" + username + "</span>";	
