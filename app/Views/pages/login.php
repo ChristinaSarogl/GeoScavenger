@@ -4,7 +4,7 @@
                 <div class="card" style="border-radius: 1rem; background: white;">
                     <div class="card-body px-5 py-2 text-center">
                         <p class="fw-bold fs-4 mb-3 text-uppercase title">Login</p>
-                        <p class="mb-3" id="error-message">Please enter your login and password!</p>
+                        <p class="mb-3" id="error-message">Please enter your login and password</p>
 
                         <form class="text-start" id="login-form">							
 							<div class="form-floating mb-3 mx-3">
@@ -17,7 +17,8 @@
 								<label for="login-password">Password</label>
 							</div>
 
-                            <p class="small mb-3 px-3 pb-lg-2 text-end"><a class="text-secondary" href="#!">Forgot password?</a></p>
+                            <p class="small mb-3 px-3 pb-lg-2 text-end"><a class="text-secondary"
+								href="<?php echo base_url(); ?>/reset-password">Forgot password?</a></p>
 
                             <div class="mt-4 text-center">
                                 <button class="btn btn-green w-50" onclick="login()">Login</button>

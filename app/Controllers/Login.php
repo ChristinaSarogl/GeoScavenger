@@ -17,4 +17,10 @@ class Login extends BaseController
 		echo view('pages/register');
 		echo view('templates/entryFooter');
 	}
+	
+	public function resetPassword(){
+		echo view('templates/entryHeader');
+		echo view('pages/resetPassword');
+		echo view('templates/entryFooter');
+	}
 }

@@ -34,7 +34,7 @@ auth.onAuthStateChanged(user => {
     } else {
 		var path = window.location.pathname;
         var page = path.split("/").pop();
-		if(page !== "login" && page !== "register"){
+		if(page !== "login" && page !== "register" && page !== "reset-password"){
 			window.location.href = "/~1801448/geoscavenger/public/login";
 		}			
         console.log("User logged out");
@@ -133,6 +133,27 @@ function signup(){
 function logoutUser(){
     auth.signOut();
 }
+
+$(document).ready(function() {
+    $(document).on('submit', '#reset-form', function(e) {
+		const resetForm = document.querySelector('#reset-form');
+
+        var email = resetForm['reset-email'].value;
+		console.log(email);
+		
+		auth.sendPasswordResetEmail(email)
+			.then(() => {
+				console.log("Email sent");
+				window.location.href = "login";
+			})
+			.catch((error) => {
+				resetForm['reset-email'].value = "";
+				document.getElementById('reset-error-message').style.display = "block";
+		});
+		
+		e.preventDefault();	
+	});
+});
 
 function loadInfo(user){
     var storage = firebase.storage();
