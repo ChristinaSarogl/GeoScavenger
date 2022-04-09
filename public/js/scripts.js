@@ -800,16 +800,17 @@ function findActiveUsers(){
 	huntRef.on('child_changed', (data) => {
 		console.log("huntRef() changed: " + data.key);
 		console.log(data.val());
+		var name = Object.values(data.val()["name"]).join('');
 		
-		if(data.val()["HELP"] !== undefined){
-			var coordinates = Object.values(data.val())[2];
-			var name = Object.values(data.val())[3];
-			displayUserDanger(data.key, name, coordinates.latitude, coordinates.longitude);
-		} else {
-			//Check if there is a danger alert for this user
-			deleteDangerAlert(data.key);
-			var coordinates = Object.values(data.val())[1];
-			var name = Object.values(data.val())[2];
+		if(data.val()["location"] !== undefined){			
+			if(data.val()["HELP"] !== undefined){
+				displayUserDanger(data.key, name, data.val()["location"].latitude, data.val()["location"].longitude);
+			} else {
+				//Check if there is a danger alert for this user
+				deleteDangerAlert(data.key);
+			}
+			
+			updateUserLocation(data.key, name, data.val()["location"].latitude, data.val()["location"].longitude);
 		}
 		
 		if(data.val()["disconnected"] !== undefined){
@@ -841,10 +842,6 @@ function findActiveUsers(){
 				document.getElementById('chat-remove-dropdown').style.display = "none";
 			}
 		}	
-		
-		if(data.val()["location"] !== undefined){
-			updateUserLocation(data.key, name, coordinates.latitude, coordinates.longitude);
-		}
 		
 	});
 	 
