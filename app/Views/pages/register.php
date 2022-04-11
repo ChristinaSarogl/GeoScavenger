@@ -4,7 +4,8 @@
                 <div class="card" style="border-radius: 1rem; background: white;">
                     <div class="card-body px-5 py-2 text-center">
                         <p class="fw-bold fs-4 mb-3 text-uppercase title">Register</p>
-                        <p class="mb-3 text-danger" id="error-message" ></p>
+						
+                        <p class="mb-3 text-danger" id="register-error-message" ></p>
 
                         <form class="text-start" id="register-form">
 							<div class="form-floating mb-3 mx-3">
@@ -15,9 +16,9 @@
                             <div class="mb-3 px-3">
                                 <span class="text-small">Date of Birth</span>
                                 <div class="input-group">
-                                    <input type="number" class="form-control" id="dateDay" placeholder="Day">                                  
-                                    <input type="number" class="form-control" id="dateMonth" placeholder="Month">                                    
-                                    <input type="number" class="form-control" id="dateYear" placeholder="Year">
+                                    <input type="number" class="form-control" id="register-day" placeholder="Day">                                  
+                                    <input type="number" class="form-control" id="register-month" placeholder="Month">                                    
+                                    <input type="number" class="form-control" id="register-year" placeholder="Year">
                                 </div>
                             </div>
 
@@ -37,7 +38,7 @@
 							</div>
                             
                             <div class="mt-4 px-3 text-center">
-                                <button class="btn btn-green w-100" onclick="signup()">Register</button>
+								<input class="btn btn-green w-50" type="submit" value="Register"/>
                             </div>
                             
                         </form>
@@ -47,6 +48,7 @@
                                 <a href="<?php echo base_url(); ?>/login" class="text-success">Login</a>
                             </p>
                         </div>
+						
                     </div>
                 </div>
             </div>
