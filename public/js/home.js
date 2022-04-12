@@ -21,6 +21,13 @@ var checkpointMarker;
 let createMarkers = [];
 let questionsInfo = {};
 
+//Active hunt variables
+var usersLocs = {};
+var mapView;
+var huntRef;
+var huntMessagesRef;
+var sendMessagesRef;
+
 
 //Listen for auth changes
 firebaseAuth.onAuthStateChanged(user => {
@@ -72,7 +79,6 @@ function loadInfo(user){
                 document.getElementById('add-checkpoint').setAttribute('src', url);
             });
         } else {
-			initMapView();
 			findActiveUsers();
 		}
         
@@ -483,4 +489,631 @@ $(document).ready(function() {
     })
 });
 
+
 //------ HUNT INFO ------
+
+// Initialize and add the map for active hunt page
+function activeMapView() {
+    mapView = new google.maps.Map(document.getElementById("map"), {
+        center: { lat: -34.397, lng: 150.644 },
+        zoom: 15,
+    });
+
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition((position) => {
+            const pos = {
+              lat: position.coords.latitude,
+              lng: position.coords.longitude,
+            };
+
+            mapView.setCenter(pos);
+
+        },() => {
+            handleLocationError(true);
+        });
+    } else{
+        handleLocationError(false);
+    }
+	
+	document.getElementById('loader').style.display="none";
+	document.getElementById('main').style.display="block";
+}
+
+function openMap(){
+	document.getElementById('map-container').style.display = "block";
+	document.getElementById('messages-container').style.display = "none";
+
+	document.getElementById('map-toggle').setAttribute('class','nav-link active me-1');
+	document.getElementById('map-toggle').style.backgroundColor = null;
+	document.getElementById('messages-toggle').setAttribute('class','nav-link link-dark position-relative');
+	document.getElementById('messages-toggle').style.backgroundColor = "#cf9a5e1f";
+}
+
+function openMessages(){
+	document.getElementById('map-container').style.display = "none";
+	document.getElementById('messages-container').style.display = "block";
+
+	document.getElementById('messages-toggle').setAttribute('class','nav-link position-relative active');
+	document.getElementById('messages-toggle').style.backgroundColor = null;
+	document.getElementById('messages-notification').style.display = "none";
+	document.getElementById('map-toggle').setAttribute('class','nav-link link-dark me-1');
+	document.getElementById('map-toggle').style.backgroundColor = "#cf9a5e1f";
+}
+
+function findActiveUsers(){
+	var idString = document.querySelector('#active-hunt-id').innerHTML;
+	var huntID = idString.split(" ")[1];
+	var trackingMessages = false;
+	
+	fireaseFirestore.collection("hunts").doc(huntID).get().then((huntInfo) =>{
+		document.getElementById('hunt-name').innerHTML= huntInfo.get('name');
+	});
+	document.getElementById('no-players-message').style.display = "block";
+	document.getElementById('map').style.display = "none";
+	document.getElementById('messages-toggle').disabled = true;
+	
+	huntRef = firebase.database().ref(huntID + '/players');
+	huntRef.on('value',(snapshot) => {	
+		if (snapshot.val() !== null){
+			document.getElementById('no-players-message').style.display = "none";
+			document.getElementById('map').style.display = "block";
+			document.getElementById('messages-toggle').disabled = false;
+			
+			//Track messages
+			if(!trackingMessages){
+				trackMessages(huntID);
+				trackingMessages = true;
+			}
+		}
+	});
+	
+	//New user entered
+	huntRef.on('child_added', (data) => {
+		console.log("huntRef() added child: " + data.key);
+		console.log(data.val());
+		var name = Object.values(data.val()["name"]).join('');
+		
+		//Add user to chat
+		var chatUsers = document.getElementById('chat-users');
+		var newUser = document.createElement('button');
+		newUser.setAttribute('class','btn btn-green mb-1 py-1 text-start w-100');	
+		newUser.setAttribute('id', 'chat-button-' + data.key + '-' + huntID);
+		newUser.setAttribute('onclick', "loadMessages('" + huntID + "','" + name + "','" + data.key + "'," + false + "," + null + ")");
+		newUser.innerHTML = name;
+		
+		chatUsers.append(newUser);
+		
+		if (data.val()["location"] !== undefined){
+			updateUserLocation(data.key, name, data.val()["location"].latitude, data.val()["location"].longitude);
+			if(data.val()["HELP"] !== undefined){
+				displayUserDanger(data.key, name, data.val()["location"].latitude, data.val()["location"].longitude);
+			}
+		}
+		
+		if (data.val()["disconnected"] !== undefined){
+			if (data.val()["disconnected"]){
+				setDisconnected(huntID, name, data.key, data.val()["last_online"]);					
+			} else {
+				setConnected(huntID, name, data.key);
+			}
+		}
+	});
+	
+	//Update user info
+	huntRef.on('child_changed', (data) => {
+		console.log("huntRef() changed: " + data.key);
+		console.log(data.val());
+		var name = Object.values(data.val()["name"]).join('');
+		
+		if(data.val()["location"] !== undefined){			
+			if(data.val()["HELP"] !== undefined){
+				displayUserDanger(data.key, name, data.val()["location"].latitude, data.val()["location"].longitude);
+			} else {
+				//Check if there is a danger alert for this user
+				deleteDangerAlert(data.key);
+			}
+			
+			updateUserLocation(data.key, name, data.val()["location"].latitude, data.val()["location"].longitude);
+		}
+		
+		if(data.val()["disconnected"] !== undefined){
+			if (data.val()["disconnected"]){
+				setDisconnected(huntID, name, data.key, data.val()["last_online"]);				
+			} else {
+				setConnected(huntID, name, data.key);
+			}
+		}	
+		
+	});
+	
+	//User exited hunt
+	huntRef.on('child_removed',(data) => {
+		console.log("huntRef() child removed: " + data.key);
+		//Remove marker on map
+		usersLocs[data.key].setMap(null);
+		delete usersLocs[data.key];
+		
+		//Remove user chat button
+		document.getElementById('chat-button-' + data.key + '-' + huntID).remove();
+		
+		//Check if the chat is open
+		if(document.getElementById('chat-container').style.display == "block"){
+			var titleElements = document.getElementById('chat-title').getElementsByTagName('span');
+			var titleUsername = titleElements[1].id.split("-");
+			console.log(titleUsername);
+			if(titleUsername[2] == data.key){
+				document.getElementById('chat-container').style.display = "none";
+			}
+		}
+	});
+	
+	//Hunt has no active players
+	var databaseRef = firebase.database().ref(huntID);
+	databaseRef.on('child_removed', (data) => {
+		if (data.key === "players"){	
+			//Remove all messages 
+			databaseRef.child('messages').remove();
+			
+			//Reset UI
+			console.log("huntRef() child removed: " + data.key);
+			document.getElementById('no-players-message').style.display = "block";
+			document.getElementById('map').style.display = "none";
+			document.getElementById('messages-toggle').disabled = true;
+			document.getElementById('chat-users').innerHTML = "";
+			document.getElementById('chat-container').style.display = "none";
+			document.getElementById('chat-title').innerHTML = "";			
+			
+			openMap();
+		}
+	});	
+}
+
+function updateUserLocation(userID, name, latitude, longitude){
+	marker = usersLocs[userID];
+	
+	if (marker == undefined){
+		console.log("add user: {lat: " + latitude + ",long: " + longitude + "}");
+	
+		const pos = { lat: latitude, lng: longitude }
+		
+		userLocation = new google.maps.Marker({
+			position: pos,
+			map: mapView,
+			draggable: false,
+			title: name
+		});
+	
+		mapView.setCenter(pos);
+		
+		usersLocs[userID] = userLocation;
+		addInfoWindow(userID, name);
+	} else {		
+		marker.setPosition({lat: latitude, lng: longitude});
+	}	
+}
+
+function addInfoWindow(userID, message){
+	usersLocs[userID]['infoWindow'] = new google.maps.InfoWindow({
+		content: message
+	});
+	
+	usersLocs[userID]['infoWindow'].open(mapView,usersLocs[userID]);
+	
+	google.maps.event.addListener(usersLocs[userID], 'click', function(){
+		this['infoWindow'].open(mapView, usersLocs[userID]);
+	});
+}
+
+function displayUserDanger(userID, name, latitude, longitude){
+	var alertPlaceholder = document.getElementById('liveAlertPlaceholder');
+	
+	if(document.getElementById('alert-location-' + userID) == null){
+		var alertWrapper = document.createElement('div');
+		alertWrapper.setAttribute('class','alert alert-danger alert-dismissible text-center');
+		alertWrapper.setAttribute('id', 'alert-' + userID);
+		alertWrapper.setAttribute('role','alert');
+		
+		var alertTitle = document.createElement('div');
+		alertTitle.setAttribute('class','d-flex align-items-center justify-content-center');		
+		
+		var iconDanger = document.createElement('i');
+		iconDanger.setAttribute('class', 'bi-exclamation-triangle-fill fs-4');
+		
+		var userName = document.createElement('p');
+		userName.setAttribute('class','m-0 ps-2');
+		userName.innerHTML = name + " in danger!";
+		
+		var userLocation = document.createElement('p');
+		userLocation.setAttribute('class','fs-6 mb-2');
+		userLocation.setAttribute('id','alert-location-' + userID);
+		userLocation.innerHTML = "Location: " + latitude + ", " + longitude;	
+		
+		var closeBtn = document.createElement('button');
+		closeBtn.setAttribute('type','button');
+		closeBtn.setAttribute('class','btn-close');
+		closeBtn.setAttribute('data-bs-dismiss','alert');
+		closeBtn.setAttribute('aria-label','Close');
+		
+		alertTitle.append(iconDanger);
+		alertTitle.append(userName);		
+		alertWrapper.append(alertTitle);
+		alertWrapper.append(userLocation);
+		alertWrapper.append(closeBtn);
+
+		alertPlaceholder.append(alertWrapper);
+	} else {
+		elementId = "alert-location-" + userID;
+		locationAlert = document.getElementById(elementId);
+		locationAlert.innerHTML = "Location: " + latitude + ", " + longitude;
+	}	
+}
+
+function deleteDangerAlert(userId){
+	if(document.getElementById('alert-' + userId) != null){
+		document.getElementById('alert-' + userId).remove();
+	}
+}
+
+function setDisconnected(huntID, name, userID, lastOnline){
+	document.getElementById('chat-button-' + userID + '-' + huntID).style.backgroundColor = "grey";
+	document.getElementById('chat-button-' + userID + '-' + huntID).setAttribute('onclick', 
+		"loadMessages('" + huntID + "','" + name + "','" + userID + "'," + true + ",'" + lastOnline + "')");
+		
+	if(document.getElementById('chat-active-dot-' + userID) != null){
+		document.getElementById('chat-active-dot-' + userID).setAttribute('class','bg-danger active-dot');
+	}
+			
+	if(document.getElementById('chat-last-online-' + userID) != null){	
+		document.getElementById('chat-last-online-div').style.display = "inline-block";
+		document.getElementById('chat-last-online-' + userID).innerHTML = "Last online: " + lastOnline;	
+		document.getElementById('chat-remove-dropdown').style.display = "inline-block";
+		document.getElementById('chat-remove-button').setAttribute('onclick','removeUser("' + huntID + '","' + userID + '")');
+	}
+			
+	
+}
+
+function setConnected(huntID, name, userID){
+	document.getElementById('chat-button-' + userID + '-' + huntID).style.backgroundColor = null;
+	document.getElementById('chat-button-' + userID + '-' + huntID).setAttribute('onclick', 
+		"loadMessages('" + huntID + "','" + name + "','" + userID + "'," + false + "," + null + ")");
+		
+	if(document.getElementById('chat-active-dot-' + userID) != null){
+		document.getElementById('chat-active-dot-' + userID).setAttribute('class','bg-success active-dot');
+	}
+	
+	if(document.getElementById('chat-last-online-' + userID) != null){	
+		document.getElementById('chat-last-online-div').style.display = "none";
+		document.getElementById('chat-remove-dropdown').style.display = "none";
+	}
+	
+	
+}
+
+function trackMessages(huntID){
+	huntMessagesRef = firebase.database().ref(huntID + '/messages/');
+	
+	huntMessagesRef.on('child_added', (data) => {
+		console.log("huntMessagesRef() added: ");
+		console.log(data.val());
+		
+		var messageInfo = data.val()[Object.keys(data.val())[0]];
+		
+		var messageTab = document.getElementById('messages-toggle').className;
+		
+		if(messageTab != "nav-link position-relative active"){
+			document.getElementById('messages-notification').style.display = "block";
+		} 
+		
+		console.log("element: " + document.getElementById('chat-title').innerHTML);
+		var chatTitleSpan = document.getElementById('chat-title').getElementsByTagName('span');
+		console.log(chatTitleSpan[1]);
+
+		if(chatTitleSpan[1] === undefined){
+			if(messageInfo['type'] == 'personal'){
+				var userButton = document.getElementById('chat-button-' + data.key + '-' + huntID);
+				console.log("Button: " + userButton);
+				
+				var badge = document.createElement('span');
+				badge.setAttribute('class','badge bg-danger ms-2');
+				badge.setAttribute('id','span-' + data.key);
+				badge.innerHTML = 1;
+				
+				userButton.append(badge);
+			}
+		} else {
+			var titleUserID = chatTitleSpan[1].id.split('-');
+			
+			if(titleUserID[2] !== data.key){
+				if(messageInfo['type'] == 'personal'){
+					var userButton = document.getElementById('chat-button-' + data.key + '-' + huntID);
+					console.log("Button: " + userButton);
+				
+					var badge = document.createElement('span');
+					badge.setAttribute('class','badge bg-danger ms-2');
+					badge.setAttribute('id','span-' + data.key);
+					badge.innerHTML = 1;
+					
+					userButton.append(badge);
+				}
+			} else {					
+				addMessageToChat(messageInfo);
+			}
+		}		
+		
+	});
+	
+	huntMessagesRef.on('child_changed', (data) => {
+		console.log("huntMessagesRef() updated: ");		
+		console.log(data.val());
+		
+		var messageInfo = data.val()[Object.keys(data.val())[Object.keys(data.val()).length - 1]];
+			
+		var messageTab = document.getElementById('messages-toggle').className;
+		
+		if(messageTab != "nav-link position-relative active"){
+			document.getElementById('messages-notification').style.display = "block";
+		}
+		
+		console.log("element: " + document.getElementById('chat-title').innerHTML);
+		
+		var chatTitleSpan = document.getElementById('chat-title').getElementsByTagName('span');
+		var userBadge = document.getElementById('span-' + data.key);
+		console.log(userBadge);
+		console.log(chatTitleSpan);
+		console.log(chatTitleSpan[1]);
+
+		if(chatTitleSpan[1] === undefined){
+			if(messageInfo['type'] == 'personal'){
+				if(userBadge !== null){
+					var number = userBadge.innerHTML;				
+					number++;
+					
+					userBadge.innerHTML = number;
+					
+					
+				} else {
+					var userButton = document.getElementById('chat-button-' + data.key + '-' + huntID);
+					console.log("Button: " + userButton);
+					
+					var badge = document.createElement('span');
+					badge.setAttribute('class','badge bg-danger ms-2');
+					badge.setAttribute('id','span-' + data.key);
+					badge.innerHTML = 1;
+					
+					userButton.append(badge);
+				}
+			}
+			
+		} else {
+			var titleUserID = chatTitleSpan[1].id.split('-');
+			console.log(titleUserID);
+			
+			if(titleUserID[2] !== data.key){
+				if(messageInfo['type'] == 'personal'){
+					if(userBadge !== null){
+						var number = userBadge.innerHTML;				
+						number++;
+						
+						userBadge.innerHTML = number;
+						
+					} else {
+						var userButton = document.getElementById('chat-button-' + data.key + '-' + huntID);
+						console.log("Button: " + userButton);
+						
+						var badge = document.createElement('span');
+						badge.setAttribute('class','badge bg-danger ms-2');
+						badge.setAttribute('id','span-' + data.key);
+						badge.innerHTML = 1;
+						
+						userButton.append(badge);
+					}
+				}
+			} else {
+				addMessageToChat(messageInfo);
+			}
+		}			
+		
+	});
+}
+
+function loadMessages(huntID, username, userID, disconnected, lastOnline){	
+	var messageList = document.getElementById('messages-list');
+	messageList.innerHTML = "";
+	
+	var lastOnlineDiv = document.getElementById('chat-last-online-div');
+	lastOnlineDiv.innerHTML = "";
+	
+	//Remove badge
+	var userBadge = document.getElementById('span-' + userID);
+	if(userBadge !== null){
+		userBadge.remove();
+	}	
+	
+	sendMessagesRef = firebase.database().ref(huntID + "/messages/" + userID);
+	
+	firebase.database().ref().child(huntID).child("messages").child(userID).get().then((snapshot) => {
+		if (snapshot.exists()) {
+			console.log(snapshot.val());
+			var messages = snapshot.val();
+			
+			for(let key in messages){
+				var messageInfo = messages[key];
+				addMessageToChat(messageInfo);				
+			}
+			
+		} else {
+			console.log("No data available");
+		}
+	}).catch((error) => {
+		console.error(error);
+	});
+	
+	
+	var smallLastOnline = document.createElement('small');
+	smallLastOnline.setAttribute('id','chat-last-online-' + userID);
+	smallLastOnline.innerHTML = "Last online: " + lastOnline;
+	lastOnlineDiv.append(smallLastOnline);
+
+	var activeDot;
+	
+	if(disconnected){
+		activeDot = "<span class='bg-danger active-dot' id='chat-active-dot-" + userID + "'></span>";
+		
+		lastOnlineDiv.style.display = "inline-block";	
+		
+		document.getElementById('chat-remove-dropdown').style.display = "inline-block";
+		document.getElementById('chat-remove-button').setAttribute('onclick','removeUser("' + huntID + '","' + userID + '")');
+	} else {
+		activeDot = "<span class='bg-success active-dot' id='chat-active-dot-" + userID + "'></span>";
+		
+		document.getElementById('chat-last-online-div').style.display = "none";
+		document.getElementById('chat-remove-dropdown').style.display = "none";
+	}
+	
+	document.getElementById('chat-title').innerHTML = activeDot + "<span class='ps-2' id='chat-username-" + userID + "'>" + username + "</span>";	
+	document.getElementById('chat-container').style.display = "block";
+}
+
+function addMessageToChat(messageInfo){
+	console.log(messageInfo);
+	var messageList = document.getElementById('messages-list');
+	
+	var message = messageInfo["text"];
+
+	var messageWrapper = document.createElement('li');
+	messageWrapper.setAttribute('class','mb-2 text-start');
+	
+	var messageText = document.createElement('p');
+	messageText.setAttribute('class','message d-inline-block rounded p-2 m-0');
+	messageText.innerHTML = message;
+	
+	var sender = document.createElement('small');
+	sender.setAttribute('class','d-block text-secondary');
+	
+	if (messageInfo['type'] == 'personal'){
+		sender.innerHTML = messageInfo["name"];
+	} else {
+		sender.innerHTML = messageInfo["name"] + " | Group";
+	}
+	
+	messageWrapper.append(messageText);		
+	messageWrapper.append(sender);		
+	messageList.append(messageWrapper);
+
+	const scrollToBottom = (node) => {
+		node.scrollTop = node.scrollHeight;
+	}
+
+	scrollToBottom(messageList);
+}
+
+//Send personal message
+$(document).ready(function() {
+    $(document).on('submit', '#message-form', function(e) {
+		var messageInput = document.getElementById("chat-message-input");
+		var message = messageInput.value;
+		
+		if(message !== ""){
+			const msg = {
+				name: "Admin",
+				text: message,
+				type: "personal"
+			};
+			
+			sendMessagesRef.push(msg);
+		}		
+		
+		messageInput.value = "";
+		
+		e.preventDefault();
+	});
+});
+
+//Send mass message
+$(document).ready(function() {
+    $(document).on('submit', '#send-to-all-form', function(e) {
+		var message = document.getElementById("message-to-all-input").value;
+		console.log(message);
+		
+		if(message !== ""){
+			const msg = {
+				name: "Admin",
+				text: message,
+				type: "group"
+			};
+			
+			huntRef.get().then((snapshot) => {
+				if (snapshot.exists()) {
+					var players = snapshot.val();
+					
+					for(let key in players){
+						huntMessagesRef.child(key).push(msg);						
+					}
+					
+				} else {
+					console.log("No data available");
+				}
+			}).catch((error) => {
+				console.error(error);
+			});
+	
+			var toast = new bootstrap.Toast(document.getElementById('message-to-all-toast'));
+			toast.show();
+		}	
+		
+		document.getElementById("message-to-all-input").value = "";
+		e.preventDefault();
+	});
+});
+
+function removeUser(huntId, userId){
+	console.log(userId);
+	
+	const huntPlayerRef = firebase.database().ref(huntId + '/players').child(userId).get().then((snapshot) => {
+		if (snapshot.exists()) {
+			console.log(snapshot.val());
+		
+			var lastConnected = snapshot.val()["last_online"];			
+			var split = lastConnected.split(' ');
+			
+			var dateConnected = split[0].split('-');			
+			var timeConnected = split[1].split(':');
+			
+			var onlineDate = new Date(dateConnected[0],dateConnected[1]-1,dateConnected[2],timeConnected[0],timeConnected[1],'00');
+			
+			var safeToDelete = false;
+			
+			if(onlineDate.getFullYear() == new Date().getFullYear()){
+				if(onlineDate.getMonth() == new Date().getMonth()){
+					if(onlineDate.getDate() != new Date().getDate()){
+						safeToDelete = true;
+					}
+				} else{
+					safeToDelete = true;
+				}
+			} else {
+				safeToDelete = true;
+			}
+			
+			if(!safeToDelete){
+				var toast = new bootstrap.Toast(document.getElementById('unable-to-delete-toast'));
+				toast.show();
+			} else {
+				firebase.database().ref(huntId + '/players').child(userId).remove();
+				firebase.database().ref(huntId + '/messages').child(userId).remove();	
+
+				var toast = new bootstrap.Toast(document.getElementById('deleted-user-toast'));
+				toast.show();
+				
+			}
+			
+			console.log(safeToDelete);
+		
+		} else {
+			console.log("No data available");
+		}
+	}).catch((error) => {
+		console.error(error);
+	});
+}
