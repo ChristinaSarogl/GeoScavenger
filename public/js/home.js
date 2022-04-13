@@ -47,6 +47,9 @@ function logoutUser(){
     firebaseAuth.signOut();
 }
 
+
+//------ HOME PAGE ------
+
 //Load administrators info
 function loadInfo(user){
     var storage = firebase.storage();
@@ -221,7 +224,6 @@ function trackAllHunts(){
 	});
 }
 
-
 function createPopup(popupId, type, popupTitle, playerInfo){
 	var toastDiv = document.createElement('div');
 	toastDiv.setAttribute('id', popupId);
@@ -272,6 +274,162 @@ function createPopup(popupId, type, popupTitle, playerInfo){
 	
 	document.getElementById('toast-container-id').append(toastDiv);
 }
+
+function deleteThisHunt(position){		
+	var user = firebaseAuth.currentUser;
+    fireaseFirestore.collection("managers").doc(user.uid).get().then((doc)=>{
+		var huntId = doc.get('created_hunts')[position];
+		var databaseRef = firebase.database().ref();	
+		databaseRef.child(huntId).get().then((snapshot) => {
+			position++;
+			
+			if (snapshot.exists()) {
+				var newPosition = showFailedHuntDelete(snapshot.val()["players"], position, huntId);
+				console.log(newPosition);
+				if(newPosition == position){
+					deleteHunt(user, huntId);
+					document.getElementById("hunts-table").deleteRow(position);
+				} else {
+					position = newPosition;
+				}
+			} else {		
+				deleteHunt(user, huntId);
+				document.getElementById("hunts-table").deleteRow(position);
+
+				var delStrings = document.getElementById('hunts-table').getElementsByClassName('clickable');
+			
+				if (delStrings.length === 0){
+					document.querySelector('#hunts-table').style.display = "none";
+					document.querySelector('#deleteAll').style.display = "none";
+					document.querySelector('#noHuntsMessage').style.display = "block";
+				} else {
+					for (let entry = 0; entry <= delStrings.length-1; entry++){
+						delStrings[entry].setAttribute('onclick', 'deleteThisHunt(' + entry + ')');
+					}				
+				}
+			}
+		});
+	});
+}
+
+function deleteAllHunts(){
+	console.log("delete all");
+	
+	var user = firebaseAuth.currentUser;
+	var position = 1;
+
+    //Get all user's hunt ids
+    fireaseFirestore.collection("managers").doc(user.uid).get().then((doc)=>{    
+        doc.get('created_hunts').forEach((huntId) => {
+			
+			var databaseRef = firebase.database().ref();	
+			databaseRef.child(huntId).get().then((snapshot) => {
+				if (snapshot.exists()) {					
+					var newPosition = showFailedHuntDelete(snapshot.val()["players"], position, huntId);
+					console.log(newPosition);
+					if(newPosition == position){
+						deleteHunt(user, huntId);
+						document.getElementById("hunts-table").deleteRow(position);
+					} else {
+						position = newPosition;
+					}
+				} else {
+					deleteHunt(user, huntId);
+					document.getElementById("hunts-table").deleteRow(position);
+				}
+
+				var delStrings = document.getElementById('hunts-table').getElementsByClassName('clickable');
+					
+				if (delStrings.length === 0){		
+					document.querySelector('#hunts-table').style.display = "none";
+					document.querySelector('#deleteAll').style.display = "none";
+					document.querySelector('#noHuntsMessage').style.display = "block";
+				}
+			}).catch((error) => {
+				console.error(error);
+			});	
+        });
+    });  	
+}
+
+function showFailedHuntDelete(players, position, huntId){
+	var playersIDs = Object.keys(players);
+	
+	for (const playerIdIndex in playersIDs){
+		playerID = playersIDs[playerIdIndex];
+		playerInfo = players[playerID];
+		
+		if(playerInfo['disconnected'] == true){							
+			var lastConnected = playerInfo["last_online"];			
+			var split = lastConnected.split(' ');
+			
+			var dateConnected = split[0].split('-');			
+			var timeConnected = split[1].split(':');
+			
+			var onlineDate = new Date(dateConnected[0],dateConnected[1]-1,dateConnected[2],timeConnected[0],timeConnected[1],'00');
+			
+			var safeToDelete = false;
+			
+			if(onlineDate.getFullYear() == new Date().getFullYear()){
+				if(onlineDate.getMonth() == new Date().getMonth()){
+					if(onlineDate.getDate() != new Date().getDate()){
+						safeToDelete = true;
+					}
+				} else{
+					safeToDelete = true;
+				}
+			} else {
+				safeToDelete = true;
+			}
+			
+			if(!safeToDelete){
+				var toast = new bootstrap.Toast(document.getElementById('inactive-in-hunt-toast'));
+				toast.show();
+				
+				return (position+1);
+			} else {								
+				firebase.database().ref(huntId + '/players').child(playerID).remove();
+				firebase.database().ref(huntId + '/messages').child(playerID).remove();
+
+				return position;
+			}
+			
+		} else {
+			var toast = new bootstrap.Toast(document.getElementById('active-in-hunt-toast'));
+			toast.show();
+			
+			return (position+1);
+		}
+	}
+}	
+
+function deleteHunt(user, huntID){	
+	fireaseFirestore.collection("hunts").doc(huntID).get().then((hunt)=>{
+		//Get the hunt's checkpoints
+		hunt.get('checkpoints').forEach((checkpoint) =>{
+
+			//Delete hunt's checkpoints
+			fireaseFirestore.collection('checkpoints').doc(checkpoint).delete().then(() => {
+				console.log("Checkpoint successfully deleted!");
+			}).catch((error) => {
+				console.error("Error removing document: ", error);
+			});   
+		});
+	
+
+		fireaseFirestore.collection("hunts").doc(huntID).delete().then(() => {
+			console.log("Hunt successfully deleted!");
+		}).catch((error) => {
+			console.error("Error removing document: ", error);
+		}); 
+
+		fireaseFirestore.collection('managers').doc(user.uid).update({
+			created_hunts: firebase.firestore.FieldValue.arrayRemove(huntID)
+		});
+		console.log("Hunt removed from list!");    
+	});
+}
+
 
 //------ CREATE HUNT ------
 

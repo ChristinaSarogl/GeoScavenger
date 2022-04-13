@@ -55,6 +55,26 @@
 		
 		<div aria-live="polite" aria-atomic="true" class="position-relative">
 			<div class="toast-container fixed-bottom p-3" id="toast-container-id" style="z-index: 100">
-			
+				
+				<div id="active-in-hunt-toast" class="toast fade hide" role="alert" aria-live="assertive" aria-atomic="true">
+					<div class="toast-header">
+						<strong class="me-auto">Active User Detected</strong>
+						<button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+					</div>
+					<div class="toast-body">
+						Unable to delete the hunt because an active user was detected.
+					</div>
+				</div>
+				
+				<div id="inactive-in-hunt-toast" class="toast fade hide" role="alert" aria-live="assertive" aria-atomic="true">
+					<div class="toast-header">
+						<strong class="me-auto">Disconnected User Detected</strong>
+						<button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+					</div>
+					<div class="toast-body">
+						Unable to delete the hunt because a disconnected user was detected. You can try deleting the hunt later.
+					</div>
+				</div>
+				
 			</div>
 		</div>
