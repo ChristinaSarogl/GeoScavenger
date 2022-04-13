@@ -127,8 +127,8 @@
 		</div>
 		
 		<div aria-live="polite" aria-atomic="true" class="position-relative">
-			<div class="toast-container fixed-bottom p-3" style="z-index: 100">
-		  
+			<div class="toast-container fixed-bottom p-3" id="toast-container-id" style="z-index: 100">
+				
 				<div id="message-to-all-toast" class="toast fade hide" role="alert" aria-live="assertive" aria-atomic="true">
 					<div class="toast-header">
 						<strong class="me-auto">GeoScavenger</strong>
@@ -158,7 +158,7 @@
 						User was removed from the hunt.
 					</div>
 				</div>
-			
+				
 			</div>
 		</div>
 		

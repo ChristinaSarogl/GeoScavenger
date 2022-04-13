@@ -146,7 +146,14 @@ function trackAllHunts(){
 	var databaseRef = firebase.database().ref();
 	let notifiedMessages = {};
 	
-	databaseRef.on('child_changed', (data) => {			
+	var path = window.location.pathname;
+	var page = path.split("/").pop();
+	
+	databaseRef.on('child_changed', (data) => {	
+		if(page == data.key){
+			return;
+		}
+		
 		if (data.val()['players'] != null){
 			var players = data.val()['players'];
 			var usersIds = Object.keys(players);
@@ -196,8 +203,9 @@ function trackAllHunts(){
 								if(notifiedMessages[userID] < userMessagesIds.length || notifiedMessages[userID] == undefined){
 									console.log("New message");
 									notifiedMessages[userID] = userMessagesIds.length;
-									createPopup('new-message-toast-' + userID, "message", "New Message!", playerInfo);
-
+									if(document.getElementById('new-message-toast-' + userID) == null){										
+										createPopup('new-message-toast-' + userID, "message", "New Message!", playerInfo);
+									}
 									var toast = new bootstrap.Toast(document.getElementById('new-message-toast-' + userID));
 									toast.show();									
 								}

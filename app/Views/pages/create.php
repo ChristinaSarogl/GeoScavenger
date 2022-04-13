@@ -138,6 +138,12 @@
 			</div>
 		</div>
 		
+		<div aria-live="polite" aria-atomic="true" class="position-relative">
+			<div class="toast-container fixed-bottom p-3" id="toast-container-id" style="z-index: 100">
+			
+			</div>
+		</div>
+		
 		<script async
 			src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAZzkbVzgL3ELWNKbsdZajeMupi-BdZ32M&callback=initMapCreate">
 		</script>
