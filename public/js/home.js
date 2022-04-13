@@ -24,7 +24,7 @@ let questionsInfo = {};
 //Active hunt variables
 var usersLocs = {};
 var mapView;
-var huntRef;
+var huntPlayersRef;
 var huntMessagesRef;
 var sendMessagesRef;
 
@@ -70,6 +70,7 @@ function loadInfo(user){
         var page = path.split("/").pop();
 
 		document.getElementById('username').innerHTML = user.displayName;
+		trackAllHunts();
 		
         if(page === "home"){
             loadHunts(user);
@@ -141,6 +142,125 @@ function loadHunts(user){
 
 }
 
+function trackAllHunts(){
+	var databaseRef = firebase.database().ref();
+	let notifiedMessages = {};
+	
+	databaseRef.on('child_changed', (data) => {
+		console.log(data.val());
+			
+		if (data.val()['players'] != null){
+			var players = data.val()['players'];
+			var usersIds = Object.keys(players);
+			
+			for (const userIdIndex in usersIds) {
+				var userID = usersIds[userIdIndex];
+				playerInfo = players[userID];
+				
+				//Show popup that some player needs help
+				if (playerInfo['HELP'] != undefined){
+					
+					if(document.getElementById('help-user-toast-' + userID) == null){
+						createPopup('help-user-toast-' + userID, "danger", "IMMEDIATE HELP!", playerInfo);				
+					} else {
+						document.getElementById('help-user-body-'+ userID).innerHTML = playerInfo['name'] + " require immediate help!<br>At location: "
+							+ playerInfo['location'].latitude + ", " + playerInfo['location'].longitude + "<br> Hunt: " + playerInfo['hunt_name'];
+					}
+					
+					var toast = new bootstrap.Toast(document.getElementById('help-user-toast-' + userID));
+					toast.show();
+						
+				//Hide the popup
+				} else {
+					if(document.getElementById('help-user-toast-' + userID) != null){
+						var toast = new bootstrap.Toast(document.getElementById('help-user-toast-' + userID));
+						toast.hide();
+					}
+				}
+				
+				//Check if there are new messages from the user
+				if (data.val()['messages'] != null){
+					var messages = data.val()['messages'];
+					console.log(messages);
+					var messagesUserIds = Object.keys(messages);
+					
+					for (const messagesUsersIndex in messagesUserIds){
+						var messageUserID = messagesUserIds[messagesUsersIndex];
+						if(messageUserID == userID){
+							var userMessages = messages[userID];
+							console.log(userMessages);
+							userMessagesIds = Object.keys(userMessages);
+							
+							for (const messageID in userMessagesIds){
+								if(notifiedMessages[userID] < userMessagesIds.length || notifiedMessages[userID] == undefined){
+									console.log("New message");
+									notifiedMessages[userID] = userMessagesIds.length;
+									createPopup('new-message-toast-' + userID, "message", "New Message!", playerInfo);
+
+									var toast = new bootstrap.Toast(document.getElementById('new-message-toast-' + userID));
+									toast.show();									
+								}
+							}
+						}
+					}
+					
+				}
+			}
+		}		
+	});
+}
+
+
+function createPopup(popupId, type, popupTitle, playerInfo){
+	var toastDiv = document.createElement('div');
+	toastDiv.setAttribute('id', popupId);
+	toastDiv.setAttribute('role', 'alert');
+	toastDiv.setAttribute('aria-live', 'assertive');
+	toastDiv.setAttribute('aria-atomic', 'true');
+	
+	
+	var headerDiv = document.createElement('div');
+	headerDiv.setAttribute('class','toast-header');
+	
+	var toastTitle = document.createElement('strong');
+	toastTitle.setAttribute('class','me-auto');
+	toastTitle.innerHTML = popupTitle;
+	
+	var toastClose = document.createElement('button');
+	toastClose.setAttribute('type', 'button');
+	toastClose.setAttribute('class', 'btn-close');
+	toastClose.setAttribute('data-bs-dismiss', 'toast');
+	toastClose.setAttribute('aria-label', 'Close');
+	
+	var toastBody = document.createElement('div');	
+
+	if (type == "danger"){
+		userID = popupId.split("-")[3];
+		toastDiv.setAttribute('class', 'toast fade hide bg-danger');
+		toastDiv.setAttribute('data-bs-autohide', 'false');
+		
+		toastBody.setAttribute('class','toast-body fw-bold');
+		toastBody.setAttribute('id','help-user-body-' + userID);
+		toastBody.innerHTML = playerInfo['name'] + " require immediate help!<br>At location: "
+		+ playerInfo['location'].latitude + ", " + playerInfo['location'].longitude
+		+ "<br> Hunt: " + playerInfo['hunt_name'];
+		
+	} else {
+		toastDiv.setAttribute('class', 'toast fade hide');
+		
+		toastBody.setAttribute('class','toast-body');
+		toastBody.innerHTML = playerInfo['name'] + " has sent you a new message!"
+			+ "<br> Hunt: " + playerInfo['hunt_name'];
+	}
+		
+	headerDiv.append(toastTitle);
+	headerDiv.append(toastClose);
+	
+	toastDiv.append(headerDiv);
+	toastDiv.append(toastBody);	
+	
+	document.getElementById('toast-container-id').append(toastDiv);
+}
 
 //------ CREATE HUNT ------
 
@@ -465,16 +585,16 @@ $(document).ready(function() {
                 checkpointsIDs[checkp-1] = checkpointRef.id;
 			}
 			
-			var huntRef = fireaseFirestore.collection('hunts').doc();
+			var firebaseHuntRef = fireaseFirestore.collection('hunts').doc();
 
-            huntRef.set({
+            firebaseHuntRef.set({
                 name: huntName,
                 players: 0,
                 date: new Date(),
                 checkpoints: checkpointsIDs
             });
 
-            var huntID = huntRef.id;
+            var huntID = firebaseHuntRef.id;
             var user = firebaseAuth.currentUser;
 
             //Add hunt to user's collection
@@ -552,8 +672,8 @@ function findActiveUsers(){
 	document.getElementById('map').style.display = "none";
 	document.getElementById('messages-toggle').disabled = true;
 	
-	huntRef = firebase.database().ref(huntID + '/players');
-	huntRef.on('value',(snapshot) => {	
+	huntPlayersRef = firebase.database().ref(huntID + '/players');
+	huntPlayersRef.on('value',(snapshot) => {	
 		if (snapshot.val() !== null){
 			document.getElementById('no-players-message').style.display = "none";
 			document.getElementById('map').style.display = "block";
@@ -568,8 +688,8 @@ function findActiveUsers(){
 	});
 	
 	//New user entered
-	huntRef.on('child_added', (data) => {
-		console.log("huntRef() added child: " + data.key);
+	huntPlayersRef.on('child_added', (data) => {
+		console.log("huntPlayersRef() added child: " + data.key);
 		console.log(data.val());
 		var name = Object.values(data.val()["name"]).join('');
 		
@@ -600,8 +720,8 @@ function findActiveUsers(){
 	});
 	
 	//Update user info
-	huntRef.on('child_changed', (data) => {
-		console.log("huntRef() changed: " + data.key);
+	huntPlayersRef.on('child_changed', (data) => {
+		console.log("huntPlayersRef() changed: " + data.key);
 		console.log(data.val());
 		var name = Object.values(data.val()["name"]).join('');
 		
@@ -627,8 +747,8 @@ function findActiveUsers(){
 	});
 	
 	//User exited hunt
-	huntRef.on('child_removed',(data) => {
-		console.log("huntRef() child removed: " + data.key);
+	huntPlayersRef.on('child_removed',(data) => {
+		console.log("huntPlayersRef() child removed: " + data.key);
 		//Remove marker on map
 		usersLocs[data.key].setMap(null);
 		delete usersLocs[data.key];
@@ -640,7 +760,6 @@ function findActiveUsers(){
 		if(document.getElementById('chat-container').style.display == "block"){
 			var titleElements = document.getElementById('chat-title').getElementsByTagName('span');
 			var titleUsername = titleElements[1].id.split("-");
-			console.log(titleUsername);
 			if(titleUsername[2] == data.key){
 				document.getElementById('chat-container').style.display = "none";
 			}
@@ -648,14 +767,14 @@ function findActiveUsers(){
 	});
 	
 	//Hunt has no active players
-	var databaseRef = firebase.database().ref(huntID);
-	databaseRef.on('child_removed', (data) => {
+	var huntRef = firebase.database().ref(huntID);
+	huntRef.on('child_removed', (data) => {
 		if (data.key === "players"){	
 			//Remove all messages 
-			databaseRef.child('messages').remove();
+			huntRef.child('messages').remove();
 			
 			//Reset UI
-			console.log("huntRef() child removed: " + data.key);
+			console.log("huntPlayersRef() child removed: " + data.key);
 			document.getElementById('no-players-message').style.display = "block";
 			document.getElementById('map').style.display = "none";
 			document.getElementById('messages-toggle').disabled = true;
@@ -1043,7 +1162,7 @@ $(document).ready(function() {
 				type: "group"
 			};
 			
-			huntRef.get().then((snapshot) => {
+			huntPlayersRef.get().then((snapshot) => {
 				if (snapshot.exists()) {
 					var players = snapshot.val();
 					

@@ -52,3 +52,9 @@
 				</div>
 			</div>
 		</div>
+		
+		<div aria-live="polite" aria-atomic="true" class="position-relative">
+			<div class="toast-container fixed-bottom p-3" id="toast-container-id" style="z-index: 100">
+			
+			</div>
+		</div>
