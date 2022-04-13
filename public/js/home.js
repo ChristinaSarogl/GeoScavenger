@@ -146,9 +146,7 @@ function trackAllHunts(){
 	var databaseRef = firebase.database().ref();
 	let notifiedMessages = {};
 	
-	databaseRef.on('child_changed', (data) => {
-		console.log(data.val());
-			
+	databaseRef.on('child_changed', (data) => {			
 		if (data.val()['players'] != null){
 			var players = data.val()['players'];
 			var usersIds = Object.keys(players);
@@ -181,17 +179,20 @@ function trackAllHunts(){
 				//Check if there are new messages from the user
 				if (data.val()['messages'] != null){
 					var messages = data.val()['messages'];
-					console.log(messages);
 					var messagesUserIds = Object.keys(messages);
+					
+					if (messages[userID] == undefined){
+						delete notifiedMessages[userID];
+					}
 					
 					for (const messagesUsersIndex in messagesUserIds){
 						var messageUserID = messagesUserIds[messagesUsersIndex];
 						if(messageUserID == userID){
 							var userMessages = messages[userID];
-							console.log(userMessages);
 							userMessagesIds = Object.keys(userMessages);
 							
 							for (const messageID in userMessagesIds){
+								
 								if(notifiedMessages[userID] < userMessagesIds.length || notifiedMessages[userID] == undefined){
 									console.log("New message");
 									notifiedMessages[userID] = userMessagesIds.length;
@@ -204,6 +205,8 @@ function trackAllHunts(){
 						}
 					}
 					
+				} else {
+					notifiedMessages = {}
 				}
 			}
 		}		
@@ -457,7 +460,6 @@ function deleteCheckpoint(checkpointNumber){
 		}
 		questionsInfo = newOrder;
 	}
-	console.log(questionsInfo);
 }
 
 //Save checkpoint's question
@@ -547,8 +549,6 @@ $(document).ready(function() {
 			document.getElementById('create-error-message').style.display = "block";
             document.getElementById('create-error-message').innerHTML="You have to enter a question for each checkpoint!";
 			window.scrollTo(0, 0);
-			console.log(questionsInfo);
-			console.log(checkpoints.length);
         } else{
             document.getElementById('loader').style.display="block";
             document.getElementById('main').style.display="none";
@@ -689,8 +689,6 @@ function findActiveUsers(){
 	
 	//New user entered
 	huntPlayersRef.on('child_added', (data) => {
-		console.log("huntPlayersRef() added child: " + data.key);
-		console.log(data.val());
 		var name = Object.values(data.val()["name"]).join('');
 		
 		//Add user to chat
@@ -721,8 +719,6 @@ function findActiveUsers(){
 	
 	//Update user info
 	huntPlayersRef.on('child_changed', (data) => {
-		console.log("huntPlayersRef() changed: " + data.key);
-		console.log(data.val());
 		var name = Object.values(data.val()["name"]).join('');
 		
 		if(data.val()["location"] !== undefined){			
@@ -748,7 +744,6 @@ function findActiveUsers(){
 	
 	//User exited hunt
 	huntPlayersRef.on('child_removed',(data) => {
-		console.log("huntPlayersRef() child removed: " + data.key);
 		//Remove marker on map
 		usersLocs[data.key].setMap(null);
 		delete usersLocs[data.key];
@@ -774,7 +769,6 @@ function findActiveUsers(){
 			huntRef.child('messages').remove();
 			
 			//Reset UI
-			console.log("huntPlayersRef() child removed: " + data.key);
 			document.getElementById('no-players-message').style.display = "block";
 			document.getElementById('map').style.display = "none";
 			document.getElementById('messages-toggle').disabled = true;
@@ -790,9 +784,7 @@ function findActiveUsers(){
 function updateUserLocation(userID, name, latitude, longitude){
 	marker = usersLocs[userID];
 	
-	if (marker == undefined){
-		console.log("add user: {lat: " + latitude + ",long: " + longitude + "}");
-	
+	if (marker == undefined){	
 		const pos = { lat: latitude, lng: longitude }
 		
 		userLocation = new google.maps.Marker({
@@ -913,8 +905,6 @@ function trackMessages(huntID){
 	huntMessagesRef = firebase.database().ref(huntID + '/messages/');
 	
 	huntMessagesRef.on('child_added', (data) => {
-		console.log("huntMessagesRef() added: ");
-		console.log(data.val());
 		
 		var messageInfo = data.val()[Object.keys(data.val())[0]];
 		
@@ -924,14 +914,11 @@ function trackMessages(huntID){
 			document.getElementById('messages-notification').style.display = "block";
 		} 
 		
-		console.log("element: " + document.getElementById('chat-title').innerHTML);
 		var chatTitleSpan = document.getElementById('chat-title').getElementsByTagName('span');
-		console.log(chatTitleSpan[1]);
 
 		if(chatTitleSpan[1] === undefined){
 			if(messageInfo['type'] == 'personal'){
 				var userButton = document.getElementById('chat-button-' + data.key + '-' + huntID);
-				console.log("Button: " + userButton);
 				
 				var badge = document.createElement('span');
 				badge.setAttribute('class','badge bg-danger ms-2');
@@ -946,7 +933,6 @@ function trackMessages(huntID){
 			if(titleUserID[2] !== data.key){
 				if(messageInfo['type'] == 'personal'){
 					var userButton = document.getElementById('chat-button-' + data.key + '-' + huntID);
-					console.log("Button: " + userButton);
 				
 					var badge = document.createElement('span');
 					badge.setAttribute('class','badge bg-danger ms-2');
@@ -963,8 +949,6 @@ function trackMessages(huntID){
 	});
 	
 	huntMessagesRef.on('child_changed', (data) => {
-		console.log("huntMessagesRef() updated: ");		
-		console.log(data.val());
 		
 		var messageInfo = data.val()[Object.keys(data.val())[Object.keys(data.val()).length - 1]];
 			
@@ -974,13 +958,8 @@ function trackMessages(huntID){
 			document.getElementById('messages-notification').style.display = "block";
 		}
 		
-		console.log("element: " + document.getElementById('chat-title').innerHTML);
-		
 		var chatTitleSpan = document.getElementById('chat-title').getElementsByTagName('span');
 		var userBadge = document.getElementById('span-' + data.key);
-		console.log(userBadge);
-		console.log(chatTitleSpan);
-		console.log(chatTitleSpan[1]);
 
 		if(chatTitleSpan[1] === undefined){
 			if(messageInfo['type'] == 'personal'){
@@ -993,7 +972,6 @@ function trackMessages(huntID){
 					
 				} else {
 					var userButton = document.getElementById('chat-button-' + data.key + '-' + huntID);
-					console.log("Button: " + userButton);
 					
 					var badge = document.createElement('span');
 					badge.setAttribute('class','badge bg-danger ms-2');
@@ -1006,7 +984,6 @@ function trackMessages(huntID){
 			
 		} else {
 			var titleUserID = chatTitleSpan[1].id.split('-');
-			console.log(titleUserID);
 			
 			if(titleUserID[2] !== data.key){
 				if(messageInfo['type'] == 'personal'){
@@ -1018,7 +995,6 @@ function trackMessages(huntID){
 						
 					} else {
 						var userButton = document.getElementById('chat-button-' + data.key + '-' + huntID);
-						console.log("Button: " + userButton);
 						
 						var badge = document.createElement('span');
 						badge.setAttribute('class','badge bg-danger ms-2');
@@ -1053,7 +1029,6 @@ function loadMessages(huntID, username, userID, disconnected, lastOnline){
 	
 	firebase.database().ref().child(huntID).child("messages").child(userID).get().then((snapshot) => {
 		if (snapshot.exists()) {
-			console.log(snapshot.val());
 			var messages = snapshot.val();
 			
 			for(let key in messages){
@@ -1095,7 +1070,6 @@ function loadMessages(huntID, username, userID, disconnected, lastOnline){
 }
 
 function addMessageToChat(messageInfo){
-	console.log(messageInfo);
 	var messageList = document.getElementById('messages-list');
 	
 	var message = messageInfo["text"];
@@ -1153,7 +1127,6 @@ $(document).ready(function() {
 $(document).ready(function() {
     $(document).on('submit', '#send-to-all-form', function(e) {
 		var message = document.getElementById("message-to-all-input").value;
-		console.log(message);
 		
 		if(message !== ""){
 			const msg = {
@@ -1186,13 +1159,9 @@ $(document).ready(function() {
 	});
 });
 
-function removeUser(huntId, userId){
-	console.log(userId);
-	
+function removeUser(huntId, userId){	
 	const huntPlayerRef = firebase.database().ref(huntId + '/players').child(userId).get().then((snapshot) => {
-		if (snapshot.exists()) {
-			console.log(snapshot.val());
-		
+		if (snapshot.exists()) {		
 			var lastConnected = snapshot.val()["last_online"];			
 			var split = lastConnected.split(' ');
 			
@@ -1227,8 +1196,6 @@ function removeUser(huntId, userId){
 				
 			}
 			
-			console.log(safeToDelete);
-		
 		} else {
 			console.log("No data available");
 		}
