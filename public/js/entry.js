@@ -17,9 +17,7 @@ const fireaseFirestore = firebase.firestore();
 
 //Listen for auth changes
 firebaseAuth.onAuthStateChanged(user => {
-    if (user){
-        window.location.href = "/~1801448/geoscavenger/public/home"      
-    } else {
+    if (!user){
 		var path = window.location.pathname;
         var page = path.split("/").pop();
 		if(page !== "login" && page !== "register" && page !== "reset-password"){
@@ -44,7 +42,7 @@ $(document).ready(function() {
                 if (doc.exists){
                     window.location.href = "home"; 
                 } else {
-                    firebaseAuth.signOut();       
+                    firebaseAuth.signOut();    					
                     document.getElementById('login-error-message').innerHTML="You need a manager account to enter this service!"; 
 					document.getElementById('login-error-message').setAttribute('class','mb-3 text-danger');
                 }
@@ -93,7 +91,7 @@ $(document).ready(function() {
 			}
 			
 			if (password !== repeat){
-            document.getElementById('register-error-message').innerHTML="Passwords do not match.";
+				document.getElementById('register-error-message').innerHTML="Passwords do not match.";
 			} else if(age < 18){
 				document.getElementById('register-error-message').innerHTML="You have to be at least 18 to use the service.";
 			} else {
@@ -120,7 +118,7 @@ $(document).ready(function() {
 				}).catch((error) => {
 					var errorCode = error.code;
 					if (errorCode === 'auth/weak-password'){
-						document.getElementById('register-error-message').innerHTML="Weak Password!<br>Your passoword has to have at least 6 characters";
+						document.getElementById('register-error-message').innerHTML="Your passoword has to have at least 6 characters";
 					} else if(errorCode === 'auth/email-already-in-use'){
 						document.getElementById('register-error-message').innerHTML="An account with this email already exists!";
 					} else if(errorCode === 'auth/invalid-email'){

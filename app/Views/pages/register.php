@@ -16,9 +16,9 @@
                             <div class="mb-3 px-3">
                                 <span class="text-small">Date of Birth</span>
                                 <div class="input-group">
-                                    <input type="number" class="form-control" id="register-day" placeholder="Day">                                  
-                                    <input type="number" class="form-control" id="register-month" placeholder="Month">                                    
-                                    <input type="number" class="form-control" id="register-year" placeholder="Year">
+                                    <input type="number" class="form-control" id="register-day" placeholder="Day" required>                                  
+                                    <input type="number" class="form-control" id="register-month" placeholder="Month" required>                                    
+                                    <input type="number" class="form-control" id="register-year" placeholder="Year" required>
                                 </div>
                             </div>
 
