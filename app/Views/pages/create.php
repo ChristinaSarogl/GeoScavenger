@@ -21,7 +21,7 @@
 							<h1 class="h2">Create Hunt</h1>
 						</div>
 					  
-						<div class="card">
+						<div class="card mb-4">
 							<div class="card-body text-center py-3">              
 								<form id="create-form"></form>
 								<form id="question-form"></form>
