@@ -1,63 +1,39 @@
-# CodeIgniter 4 Application Starter
 
-## What is CodeIgniter?
+# GeoScavenger
 
-CodeIgniter is a PHP full-stack web framework that is light, fast, flexible and secure.
-More information can be found at the [official site](http://codeigniter.com).
+Treasure hunt games are used in a variety of settings to promote a fun way of exercising both the mind and the body. GeoScavenger, a treasure hunt management system. The system consists of a location
+aware mobile application and a companion web application.
 
-This repository holds a composer-installable app starter.
-It has been built from the
-[development repository](https://github.com/codeigniter4/CodeIgniter4).
+The system mainly addresses the lack of communication during a treasure hunt game by allowing the players and the administrator to send instant messages. Moreover, the system includes a specific functionality designed for emergencies, that allows players to share their location with the administrator, so help can be sent right away. 
 
-More information about the plans for version 4 can be found in [the announcement](http://forum.codeigniter.com/thread-62615.html) on the forums.
 
-The user guide corresponding to this version of the framework can be found
-[here](https://codeigniter4.github.io/userguide/).
+## Features
 
-## Installation & updates
+**Mobile Application**
+- Login / Register to service
+- "Play as Guest" functionality
+- Manage player's profile
+    - Edit information (picture, username, email, password)
+    - Delete the account
+- Join treasure hunts
+    - Via unique code
+    - Using the interactive map
+- Display information about previous hunts
+- Instant messages with the hunt organizer
+- Help button for immediate help during the hunt
+- Interactive map, hunt clues and checkpoint activities
 
-`composer create-project codeigniter4/appstarter` then `composer update` whenever
-there is a new release of the framework.
+**Web Application**
+- Login / Register to service
+- Dashboard of all created hunts
+- Interactive map displaying players locations
+- Instant messages with single players or hunt group
+- Popup requesting help
 
-When updating, check the release notes to see if there are any changes you might need to apply
-to your `app` folder. The affected files can be copied or merged from
-`vendor/codeigniter4/framework/app`.
 
-## Setup
+## Authors
+[@ChristinaSarogl](https://github.com/ChristinaSarogl)
 
-Copy `env` to `.env` and tailor for your app, specifically the baseURL
-and any database settings.
 
-## Important Change with index.php
-
-`index.php` is no longer in the root of the project! It has been moved inside the *public* folder,
-for better security and separation of components.
-
-This means that you should configure your web server to "point" to your project's *public* folder, and
-not to the project root. A better practice would be to configure a virtual host to point there. A poor practice would be to point your web server to the project root and expect to enter *public/...*, as the rest of your logic and the
-framework are exposed.
-
-**Please** read the user guide for a better explanation of how CI4 works!
-
-## Repository Management
-
-We use GitHub issues, in our main repository, to track **BUGS** and to track approved **DEVELOPMENT** work packages.
-We use our [forum](http://forum.codeigniter.com) to provide SUPPORT and to discuss
-FEATURE REQUESTS.
-
-This repository is a "distribution" one, built by our release preparation script.
-Problems with it can be raised on our forum, or as issues in the main repository.
-
-## Server Requirements
-
-PHP version 7.3 or higher is required, with the following extensions installed:
-
-- [intl](http://php.net/manual/en/intl.requirements.php)
-- [libcurl](http://php.net/manual/en/curl.requirements.php) if you plan to use the HTTP\CURLRequest library
-
-Additionally, make sure that the following extensions are enabled in your PHP:
-
-- json (enabled by default - don't turn it off)
-- [mbstring](http://php.net/manual/en/mbstring.installation.php)
-- [mysqlnd](http://php.net/manual/en/mysqlnd.install.php)
-- xml (enabled by default - don't turn it off)
+## Badges
+[![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
